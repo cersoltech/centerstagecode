@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/drawable/gradient_background.xml" value="0.15" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/activity_licensing.xml" value="0.14628623188405798" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/activity_main.xml" value="0.1526268115942029" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/activity_splash.xml" value="0.12" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/custom_dialog.xml" value="0.18645833333333334" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/customization_dialog.xml" value="0.18645833333333334" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/design_layout3.xml" value="0.1539855072463768" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/item_token_counter_view.xml" value="0.13489583333333333" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/layout_loader.xml" value="0.20199275362318841" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/password_dialog.xml" value="0.14628623188405798" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/template_eight.xml" value="0.1" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/template_eighteen.xml" value="0.12447916666666667" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/template_eleven.xml" value="0.1526268115942029" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/template_fifteen.xml" value="0.12447916666666667" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/template_five.xml" value="0.12447916666666667" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/template_four.xml" value="0.12447916666666667" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/template_fourteen.xml" value="0.12447916666666667" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/template_one.xml" value="0.13796296296296295" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/template_sixteen.xml" value="0.1" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/template_ten.xml" value="0.11203703703703703" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/template_thirty_one.xml" value="0.18645833333333334" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/template_thirty_three.xml" value="0.18645833333333334" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/template_twenty_nine.xml" value="0.18645833333333334" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/template_twenty_ninecopy.xml" value="0.2" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/template_twenty_ninesildercopy.xml" value="0.2" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/template_twenty_seven.xml" value="0.18645833333333334" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/template_twenty_six.xml" value="0.18645833333333334" />
+        <entry key="..\:/SelfProjects/AndroidPlayer26aug21/AndroidPlayer/app/src/main/res/layout/template_twenty_three.xml" value="0.18645833333333334" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/img_logo"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:adjustViewBounds="true"
+        android:src="@drawable/center_stage_logo"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/logo_guideline"/>
+    <LinearLayout
+        android:id="@+id/ll_ticker"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:background="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ticker_guideline">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/const_bg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/blue">
+
+            <TextView
+                android:id="@+id/txt_token_number"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/dimen_3dp"
+                android:layout_marginTop="@dimen/activity_horizontal_margin"
+                android:text="@string/token_number"
+                android:fontFamily="@font/proximanova_bold"
+                android:textColor="@color/white"
+                android:textSize="@dimen/text_size25"
+                app:layout_constraintHorizontal_weight="2"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toLeftOf="@+id/txt_counter_number"/>
+            <TextView
+                android:id="@+id/txt_counter_number"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/dimen_3dp"
+                android:layout_marginTop="@dimen/activity_horizontal_margin"
+                android:text="@string/counter_number"
+                android:fontFamily="@font/proximanova_bold"
+                android:textColor="@color/white"
+                android:textSize="@dimen/text_size25"
+                app:layout_constraintHorizontal_weight="1"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintLeft_toRightOf="@+id/txt_token_number"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_token_counter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:orientation="horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_token_counter_view"/>
+    </LinearLayout>
+
+
+    <ImageView
+        android:id="@+id/img_one"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:resize_mode="fill"
+        app:use_controller="false"
+        android:focusable="true"
+        android:src="@drawable/center_stage_logo"
+        app:layout_constraintTop_toBottomOf="@+id/logo_guideline"
+        app:layout_constraintBottom_toTopOf="@+id/video_guideline"
+        app:layout_constraintRight_toLeftOf="@+id/txt_ticker"
+        app:layout_constraintLeft_toLeftOf="parent"/>
+
+    <TextView
+        android:id="@+id/txt_ticker"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:resize_mode="fill"
+        app:use_controller="false"
+        android:focusable="true"
+        android:text="name"
+        android:layout_margin="20px"
+        android:textSize="@dimen/text_size25"
+        android:padding="@dimen/text_size25"
+        app:layout_constraintTop_toBottomOf="@+id/logo_guideline"
+        app:layout_constraintBottom_toTopOf="@+id/video_guideline"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toRightOf="@+id/img_one"/>
+
+    <ImageView
+        android:id="@+id/video_one"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:adjustViewBounds="true"
+        android:background="@color/white"
+        app:layout_constraintBottom_toTopOf="@+id/ticker_guideline"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:src="@drawable/center_stage_logo"
+        app:layout_constraintTop_toBottomOf="@+id/video_guideline"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/logo_guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.10"/>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/video_guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.35" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/ticker_guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.70" />
+</androidx.constraintlayout.widget.ConstraintLayout>

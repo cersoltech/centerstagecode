@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/device_selection"
+        android:title="@string/device_selection"
+        android:enabled="true"
+        android:visible="true"
+        android:icon="@drawable/ic_baseline_desktop_windows_24"/>
+    <item
+        android:id="@+id/add_device"
+        android:title="@string/add_device"
+        android:enabled="true"
+        android:visible="true"
+        android:icon="@drawable/ic_baseline_desktop_windows_24"/>
+    <item
+        android:id="@+id/app_settings"
+        android:title="@string/app_setting"
+        android:enabled="true"
+        android:visible="true"
+        android:icon="@drawable/ic_baseline_desktop_windows_24"/>
+</menu>

@@ -1,0 +1,98 @@
+<resources>
+    <string name="app_name">AndroidPlayer</string>
+
+    <!--device selection-->
+    <string name="zone">Zone</string>
+    <string name="city">City</string>
+    <string name="branch">Branch</string>
+    <string name="device_group">Device Group</string>
+    <string name="device">Device</string>
+    <string name="submit">Submit</string>
+    <string name="device_selection">Device Selection</string>
+    <string name="add_device">Add Device</string>
+    <string name="device_name">Device Name</string>
+    <string name="screen_height">Screen Height</string>
+    <string name="screen_width">Screen Width</string>
+    <string name="device_ip">Device IP</string>
+    <string name="device_id">ID</string>
+    <string name="app_setting">App Setting</string>
+    <string name="ip_adds">IP Address</string>
+    <string name="port_no">Port No.</string>
+    <string name="device_udid">Device ID - </string>
+
+
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="text_tikcer">Ticker text</string>
+
+    <string name="some_error_occurred">Some error occurred</string>
+    <string name="something_went_wrong">Something went wrong</string>
+
+    <!--External File Handling-->
+    <string name="download_on_progress">Download on progress</string>
+    <string name="download_complete">Download complete</string>
+    <string name="format_not_supported">File Format Not Supported</string>
+    <string name="download_status">Download status</string>
+
+    <!--network-->
+    <string name="NetworkAvailable">Network available</string>
+    <string name="NetworkUnavailable">Network unavailable</string>
+    <string name="NetworkError">Network error</string>
+
+    <!--main screen-->
+    <string name="token_number">Token \nNo.</string>
+    <string name="counter_number">Counter \nNo.</string>
+    <string name="token_no">Token No.</string>
+    <string name="counter_no">Counter No.</string>
+    <string name="img25">img25</string>
+    <string name="hyphen">&#8211;</string>
+    <string name="title_activity_device_info">MainActivity</string>
+    <string name="color_dialog_title">Select Color</string>
+    <string name="select_text_color">Select Text Color</string>
+    <string name="select_background_color">Select Background Color</string>
+    <string name="text_color">Text Color</string>
+    <string name="background_color">Background Color</string>
+    <string name="font_style">Font Style</string>
+    <string name="header_label_type">Header Lable Type</string>
+    <string name="text_align">Text Align</string>
+    <string name="header_area">Header Area</string>
+    <string name="queue_area">Queue Area</string>
+    <string name="rt_queue_area">Right Side Queue Area</string>
+    <string name="no_of_rows">No. of Rows</string>
+    <string name="no_of_columns">No. of Columns</string>
+    <string name="font_family">Font Family</string>
+    <string name="font_size">Font Size</string>
+    <string name="blink_animation_duration">Blink Animation Duration</string>
+    <string name="sound_playing">Sound Duration</string>
+    <string name="queue_ringtone">Queue No. Sound</string>
+    <string name="queue_color">Queue Line Color</string>
+    <string name="apply">Apply</string>
+    <string name="ticker_direction">Ticker Direction</string>
+    <string name="ticker_area">Ticker Area</string>
+    <string name="lblreset">Reset</string>
+    <string name="enter_font_size_11_100">Enter Font Size(11-100)</string>
+    <string name="enter_pwd">Enter Password</string>
+    <string name="ticker_speed">Ticker Speed</string>
+
+    <string name="password_txt">Edit Settings</string>
+    <string name="ding_dong">Ding Dong</string>
+    <string name="ting_tong">Ting Tong</string>
+    <string name="blip_blip">Blip Blip</string>
+    <string name="beep">Beep</string>
+    <string name="knock_knock">Knock Knock</string>
+    <string name="single_beep">Single Beep</string>
+
+
+    <string name="ding">Ding Dong1</string>
+    <string name="bell">Bell</string>
+
+    <string name="single_line">Single Line</string>
+    <string name="double_line">Double Line</string>
+
+    <string name="licencing">Device License</string>
+    <string name="device_licencing">Device Licensing</string>
+    <string name="license_msg">Your device license is expired. Please update it</string>
+    <string name="online_reg">Online Register</string>
+    <string name="offline_reg">Offline Register</string>
+    <string name="attach_file">Attach File</string>
+
+</resources>

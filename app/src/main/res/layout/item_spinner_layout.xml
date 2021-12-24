@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    android:id="@+id/rl_spinner"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/border_white"
+    android:layout_marginTop="@dimen/dimen_5dp"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <androidx.appcompat.widget.AppCompatSpinner
+        android:id="@+id/spinner_headerfontsize"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.AppCompat.DropDownItem.Spinner"
+        android:layout_marginTop="@dimen/dimen_3dp"
+        android:overlapAnchor="false"
+        android:textSize="@dimen/text_size"
+        app:backgroundTint="@color/text_black" />
+</RelativeLayout>
+

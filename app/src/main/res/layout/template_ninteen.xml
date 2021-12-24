@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/img_logo"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:adjustViewBounds="true"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/logo_guideline"/>
+
+        <LinearLayout
+            android:id="@+id/ll_recycler"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:orientation="vertical"
+            android:background="@color/white"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@+id/vertical_guideline"
+            app:layout_constraintTop_toBottomOf="@+id/logo_guideline"
+            app:layout_constraintBottom_toBottomOf="parent">
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/const_bg"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/blue">
+
+                <TextView
+                    android:id="@+id/txt_token_number"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/dimen_3dp"
+                    android:layout_marginTop="@dimen/activity_horizontal_margin"
+                    android:text="@string/token_number"
+                    android:fontFamily="@font/proximanova_bold"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/text_size25"
+                    app:layout_constraintHorizontal_weight="2"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toLeftOf="@+id/txt_counter_number"
+                    android:layout_marginLeft="@dimen/dimen_3dp" />
+                <TextView
+                    android:id="@+id/txt_counter_number"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/dimen_3dp"
+                    android:layout_marginTop="@dimen/activity_horizontal_margin"
+                    android:text="@string/counter_number"
+                    android:fontFamily="@font/proximanova_bold"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/text_size25"
+                    app:layout_constraintHorizontal_weight="1"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintLeft_toRightOf="@+id/txt_token_number"
+                    android:layout_marginLeft="@dimen/dimen_3dp" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_token_counter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:orientation="vertical"
+                android:divider="@color/dark_gray"
+                android:dividerHeight="1dp"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/item_token_counter_view"/>
+        </LinearLayout>
+
+
+        <com.google.android.exoplayer2.ui.PlayerView
+            android:id="@+id/video_one"
+            app:played_color="@color/teal_200"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:resize_mode="fill"
+            app:use_controller="false"
+            android:focusable="true"
+            android:background="@color/blue"
+            app:layout_constraintTop_toBottomOf="@+id/logo_guideline"
+            app:layout_constraintBottom_toTopOf="@+id/video_guideline"
+            app:layout_constraintRight_toLeftOf="@+id/video_two"
+            app:layout_constraintLeft_toRightOf="@+id/vertical_guideline"/>
+
+        <com.google.android.exoplayer2.ui.PlayerView
+            android:id="@+id/video_two"
+            app:played_color="@color/teal_200"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:focusable="true"
+            app:resize_mode="fill"
+            app:use_controller="false"
+            android:background="@color/blue"
+            app:layout_constraintTop_toBottomOf="@+id/logo_guideline"
+            app:layout_constraintBottom_toTopOf="@+id/video_guideline"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toRightOf="@+id/video_one"/>
+
+        <com.google.android.exoplayer2.ui.PlayerView
+            android:id="@+id/video_three"
+            app:played_color="@color/teal_200"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:focusable="true"
+            app:resize_mode="fill"
+            app:use_controller="false"
+            android:background="@color/blue"
+            app:layout_constraintTop_toBottomOf="@+id/video_guideline"
+            app:layout_constraintLeft_toRightOf="@+id/vertical_guideline"
+            app:layout_constraintRight_toLeftOf="@+id/video_four"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <com.google.android.exoplayer2.ui.PlayerView
+            android:id="@+id/video_four"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@color/blue"
+            android:focusable="true"
+            app:resize_mode="fill"
+            app:played_color="@color/teal_200"
+            app:use_controller="false"
+            app:layout_constraintTop_toBottomOf="@+id/video_guideline"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toRightOf="@+id/video_three"/>
+
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/logo_guideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.15"/>
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/video_guideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.6"/>
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/vertical_guideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.25"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
