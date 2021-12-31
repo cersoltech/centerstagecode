@@ -46,6 +46,13 @@ fun getCurrentdate(format: String = "dd-MM-yyyy"): String {
     return df.format(c)
 }
 
+fun getCurrentdate2(format: String = "MM-dd-yyyy"): String {
+    val c = Calendar.getInstance().time
+    println("Current time => $c")
+    val df = SimpleDateFormat(format, Locale.getDefault())
+    return df.format(c)
+}
+
 
 /**
  * Method to get Calendar Instance wherever required

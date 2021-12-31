@@ -113,6 +113,27 @@ class DeviceTemplateData {
     @Expose
     var updatedAt: String? = null
 
+    //Work By Sheraz--(Add these extra parameters)
+    /*---{Start}----*/
+    @SerializedName("doctor_name")
+    @Expose
+    var doctorName: String? = ""
+
+    @SerializedName("doctor_image")
+    @Expose
+    var doctorImage: String? = ""
+
+   @SerializedName("description")
+    @Expose
+    var description: String? = ""
+
+
+  @SerializedName("room_number")
+    @Expose
+    var roomNO: String? = ""
+
+
+
     @SerializedName("template_assets")
     @Expose
     var templateAssets: List<TemplateAsset>? = null

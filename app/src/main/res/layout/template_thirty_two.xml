@@ -10,12 +10,13 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:gravity="center"
+        android:orientation="vertical"
         android:background="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/ticker_guideline">
-    <com.digitalsignage.androidplayer.utils.MarqueeNoFocus
+    <!--<com.digitalsignage.androidplayer.utils.MarqueeNoFocus
         android:id="@+id/txt_ticker"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -27,7 +28,7 @@
         android:focusableInTouchMode="true"
         android:textColor="@color/text_black"
         android:fontFamily="@font/proximanova_bold"
-        android:textSize="@dimen/text_size28" />
+        android:textSize="@dimen/text_size28" />-->
     </LinearLayout>
     <LinearLayout
         android:id="@+id/ll_recycler"

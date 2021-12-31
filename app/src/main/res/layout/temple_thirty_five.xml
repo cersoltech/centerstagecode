@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal">
+
+
+    <LinearLayout
+        android:id="@+id/llDrInfo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="visible"
+        android:weightSum="10">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="5"
+            android:background="@color/grey">
+
+
+            <ImageView
+                android:id="@+id/ivProfile"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/grey"
+                android:contentDescription="TODO"
+                android:paddingTop="30dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/profile" />
+
+
+            <ImageView
+                android:id="@+id/ivLogo"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/logo" />
+
+        </RelativeLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="5"
+            android:background="@color/sky_color"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvDrName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:fontFamily="@font/proximanova_bold"
+                android:text="Dr. Byun II Hwan"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvDrCategory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:gravity="right"
+                android:text="Plastic Surgery Specialist"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+
+            <TextView
+                android:id="@+id/tvDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginEnd="16dp"
+                android:text="\u25AA Formar Fellow of plastic surgery at Dr\n Hospital\n \u25AA Formar Fellow of plastic surgery at Dr\n Hospital \n \u25AA Formar Fellow of plastic surgery at Dr\n Hospital"
+                android:textSize="18sp"
+                android:textStyle="normal" />
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/llRoom"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/blue_color"
+        android:orientation="vertical"
+        android:visibility="visible"
+        android:weightSum="10">
+
+        <TextView
+            android:id="@+id/tvRoomNo"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:layout_weight="5"
+            android:background="#01B0F1"
+            android:fontFamily="@font/proximanova_bold"
+            android:gravity="center"
+            android:text="Room# \n00"
+            android:textSize="40sp" />
+
+        <TextView
+            android:id="@+id/tvQnO"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="16dp"
+            android:layout_weight="5"
+            android:background="@color/white"
+            android:fontFamily="@font/proximanova_bold"
+            android:gravity="center"
+            android:text="Q-No \n 0"
+            android:textColor="@color/red"
+            android:textSize="40sp" />
+
+
+    </LinearLayout>
+
+
+</LinearLayout>

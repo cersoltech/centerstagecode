@@ -259,7 +259,9 @@ class DeviceSelectionFragment : BaseFragment<DesignLayout3Binding, LoginViewMode
 
     private fun setupObservers() {
 
-        mViewModel?.getAssetDownloadScheduleData(getCurrentdate("dd-MM-yyyy"))
+        //Work By Sheraz----(fix date format)--------
+//        mViewModel?.getAssetDownloadScheduleData(getCurrentdate2("MM-dd-yyyy"))
+        mViewModel?.getAssetDownloadScheduleData(getCurrentdate2("MM-dd-yyyy"))
         mViewModel?.getZonesData()
 
         spnrZoneAdapter = ArrayAdapter<String>(activity!!, R.layout.spinner_item, zoneNameList)

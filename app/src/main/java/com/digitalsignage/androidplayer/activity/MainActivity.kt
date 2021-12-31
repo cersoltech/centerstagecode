@@ -17,12 +17,14 @@ import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.cardview.widget.CardView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.FileProvider
 import androidx.lifecycle.observe
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.digitalsignage.androidplayer.BR
 import com.digitalsignage.androidplayer.DownloadBroadcastReceiver
 import com.digitalsignage.androidplayer.OnDownloadListener
@@ -55,19 +57,23 @@ import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.util.Util
+import kotlinx.android.synthetic.main.temple_thirty_five.*
 import kotlinx.coroutines.*
 import java.io.File
+import java.lang.Runnable
 
 
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
-class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDialogListerner,
-    TokenCounterAdapter.ItemLongPressListener, OnDownloadListener, OnUdpListerner, TokenCounterAdapter.RepeatTokenCallback, SettingDialogListener {
+class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(), CustDialogListerner,
+    TokenCounterAdapter.ItemLongPressListener, OnDownloadListener, OnUdpListerner,
+    TokenCounterAdapter.RepeatTokenCallback, SettingDialogListener {
     private val TAG = MainActivity::class.java.simpleName
 
     companion object {
         var resumeAt: Long = 0L
     }
+
     //private lateinit var tokenCounterList: ArrayList<TokenCounter>
     private var tokenCounterList = ArrayList<TokenCounter>()
     private var udpTokenList = ArrayList<String>()
@@ -80,7 +86,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
 
     private var videoFiles = ArrayList<File>()
     private var templateLayoutId: Int = 0
-    private lateinit var assetDownloadScheduleResponse: AssetDownloadScheduleResponse
+    private var assetDownloadScheduleResponse = AssetDownloadScheduleResponse()
     private var scheduleList = ArrayList<ScheduleData>()
     private var startTime: String? = null
     private var endTime: String? = null
@@ -114,6 +120,12 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
     private var tokenCounterView: ConstraintLayout? = null
     private var txtTicket: TextView? = null
     private var txtCounter: TextView? = null
+    private var txtName: TextView? = null
+    private var txtDrCategory: TextView? = null
+    private var txtDescription: TextView? = null
+    private var txtRoomNo: TextView? = null
+    private var txtQNo: TextView? = null
+
 
     private var mCounter: TextView? = null
     private var mToken: TextView? = null
@@ -187,6 +199,18 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
     private var templateAssetLogoImageCount = 0
     private var templateAssetTickerTextCount = 0
 
+
+    /*---Work By Sheraz---*/
+    //Complete Template Model
+    private var model = ScheduleData()
+
+
+    /*---Handler Variables-----*/
+    private var mHandler: Handler = Handler(Looper.getMainLooper())
+    private lateinit var _runnable: Runnable
+    private var shouldStopSyncing = false
+
+
     private lateinit var udpSocketReceiver: UdpBroadcastReceiver
 
     override fun getViewModel(): HomeViewModel = HomeViewModel()
@@ -208,14 +232,17 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
-        window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN)
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_FULLSCREEN,
+            WindowManager.LayoutParams.FLAG_FULLSCREEN
+        )
 
         val decorView = this.window.decorView
-        val uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE
+        val uiOptions =
+            View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_IMMERSIVE
         decorView.systemUiVisibility = uiOptions
-            //val actionBar: ActionBar = this.actionBar!!
-            //actionBar.hide()
+        //val actionBar: ActionBar = this.actionBar!!
+        //actionBar.hide()
 
         initBinding()
         //mViewStub = findViewById(R.id.layout_stub)
@@ -230,7 +257,6 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
         val intentFilter = IntentFilter("MESSAGE_RECEIVED")
         registerReceiver(udpSocketReceiver, intentFilter)
     }
-
 
 
     private fun initData() {
@@ -248,26 +274,36 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
         savedDeviceId = PreferanceRepository.getString(Constants.DEVICE_ID)
 
         //get shared pref stored response
-        assetDownloadScheduleResponse = getTemplateAssetStoredResponse()!!
+
+        if (getTemplateAssetStoredResponse() != null) {
+            assetDownloadScheduleResponse = getTemplateAssetStoredResponse()!!
+        }
 
         scheduleList = assetDownloadScheduleResponse.data as ArrayList<ScheduleData>
 
         //scheduleList.forEach { scheduleData ->
-        for (scheduleData in scheduleList)
-        {
+        for (scheduleData in scheduleList) {
             val deviceTemplateData = scheduleData.deviceTemplateData
             if (savedDeviceId == scheduleData.deviceId && savedZoneId == scheduleData.zoneId &&
-                    savedCityId == scheduleData.cityId && savedBranchId == scheduleData.branchId &&
-                    savedDeviceGrpId == scheduleData.deviceGroupId) {
+                savedCityId == scheduleData.cityId && savedBranchId == scheduleData.branchId &&
+                savedDeviceGrpId == scheduleData.deviceGroupId
+            ) {
+
+
+                /*-------Work By Sheraz--------*/
+                //This Model Saves Response of template
+                model = scheduleData;
+
+
+
                 startTime = scheduleData.startTime
                 endTime = scheduleData.endTime
 
                 val timeBetween = checkCurrentTime(startTime!!, endTime!!)
                 Log.d(TAG, "onCreate: checkCurrentTime $timeBetween")
 
-                if (checkIfStartTimeAfterCurrentTime(startTime!!))
-                {
-                  break
+                if (checkIfStartTimeAfterCurrentTime(startTime!!)) {
+                    break
                 }
                 templateLayoutId = deviceTemplateData?.templateId?.toInt() ?: 0
                 PreferanceRepository.setInt(Constants.Current_Device_Layout_ID, templateLayoutId)
@@ -277,7 +313,14 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
                     AppLog.d(TAG, "videofiles empty")
                 } else {
                     AppLog.d(TAG, "videofiles not empty: ${videoFiles.size}")
-                    getDeviceIdTemplateSpecificFiles(savedDeviceId,savedZoneId,savedCityId,savedBranchId,savedDeviceGrpId,templateLayoutId)
+                    getDeviceIdTemplateSpecificFiles(
+                        savedDeviceId,
+                        savedZoneId,
+                        savedCityId,
+                        savedBranchId,
+                        savedDeviceGrpId,
+                        templateLayoutId
+                    )
                 }
                 if (timeBetween) {
                     break
@@ -285,9 +328,10 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
             }
         }
 
-        if (getLayout(templateLayoutId) != 0)
-        {
+        if (getLayout(templateLayoutId) != 0) {
             mBinding?.layoutStub?.viewStub?.layoutResource = getLayout(templateLayoutId)
+        } else {
+            Toast.makeText(this, "Error", Toast.LENGTH_LONG).show()
         }
         inflated = mBinding?.layoutStub?.viewStub?.inflate()
         setLayoutViews(templateLayoutId)
@@ -297,7 +341,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
             dataList.data?.forEach { scheduleDataList ->
 
                 if (PreferanceRepository.getString(Constants.DEVICE_ID)
-                                .equals(scheduleDataList.deviceId)
+                        .equals(scheduleDataList.deviceId)
                 ) {
                     startTime = scheduleDataList.startTime
                     endTime = scheduleDataList.endTime
@@ -308,9 +352,9 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
                             //this is for same device template or asset change
                             if (PreferanceRepository.getInt(Constants.Current_Device_Layout_ID) != deviceTempData.templateId?.toInt()) {
                                 PreferanceRepository.setInt(
-                                        Constants.Current_Device_Layout_ID,
-                                        deviceTempData.templateId?.toInt()
-                                                ?: 0
+                                    Constants.Current_Device_Layout_ID,
+                                    deviceTempData.templateId?.toInt()
+                                        ?: 0
                                 )
                                 //download new files of template
                                 downloadAllDataFromApi(scheduleDataList)
@@ -344,37 +388,36 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
                 savedDeviceId = PreferanceRepository.getString(Constants.DEVICE_ID)
 
                 if (savedDeviceId.equals(savedTempData.deviceId) &&
-                        fileDiffData.deviceTemplateData?.templateId.equals(savedTempData.deviceTemplateData?.templateId))
-                {
+                    fileDiffData.deviceTemplateData?.templateId.equals(savedTempData.deviceTemplateData?.templateId)
+                ) {
                     fileDiffData.deviceTemplateData?.templateId?.toInt()?.let {
                         getPrefStoredSpecificTemplateDataCount(it)
                     }
 
                     //check logo image diff
-                    if (templateAssetLogoImageCount == 1)
-                    {
-                        if (fileDiffData.deviceTemplateData?.logo.equals(savedTempData.deviceTemplateData?.logo))
-                        {
+                    if (templateAssetLogoImageCount == 1) {
+                        if (fileDiffData.deviceTemplateData?.logo.equals(savedTempData.deviceTemplateData?.logo)) {
                             Log.d(TAG, "checkApiFileDiff: same image")
-                        }else
-                        {
+                        } else {
 
-                            Log.d(TAG, "img diff: ${scheduleDataList.deviceTemplateData?.logo} / \n" +
-                                    "${savedTempData.deviceTemplateData?.logo}")
+                            Log.d(
+                                TAG, "img diff: ${scheduleDataList.deviceTemplateData?.logo} / \n" +
+                                        "${savedTempData.deviceTemplateData?.logo}"
+                            )
                             downlodLogoImage(scheduleDataList)
                         }
                     }//if end
 
                     //check ticker text diff
-                    if (templateAssetTickerTextCount == 1)
-                    {
-                        if (fileDiffData.deviceTemplateData?.tickerText.equals(savedTempData.deviceTemplateData?.tickerText))
-                        {
+                    if (templateAssetTickerTextCount == 1) {
+                        if (fileDiffData.deviceTemplateData?.tickerText.equals(savedTempData.deviceTemplateData?.tickerText)) {
                             Log.d(TAG, "checkApiFileDiff: same tikcer")
-                        }else
-                        {
-                            Log.d(TAG, "ticker diff: ${fileDiffData.deviceTemplateData?.tickerText} / \n" +
-                                    "${savedTempData.deviceTemplateData?.tickerText}")
+                        } else {
+                            Log.d(
+                                TAG,
+                                "ticker diff: ${fileDiffData.deviceTemplateData?.tickerText} / \n" +
+                                        "${savedTempData.deviceTemplateData?.tickerText}"
+                            )
                         }
                     }//if end
 
@@ -382,7 +425,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
                     fileDiffData.deviceTemplateData?.templateAssets?.let { apitempAssetData ->
                         //api data
                         savedTempData.deviceTemplateData?.templateAssets?.let { savedTempAssestData ->
-                            if (apitempAssetData.isNotEmpty() && savedTempAssestData.isNotEmpty()){
+                            if (apitempAssetData.isNotEmpty() && savedTempAssestData.isNotEmpty()) {
 
                                 /*apitempAssetData.forEach { apiData ->
                                     // 0 pos - abc.mp4     a.mp4,b.mp4,c.mp4,abc.mp4 4 4
@@ -399,19 +442,19 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
                                     }
                                 }*/
 
-                                if (apitempAssetData.size == savedTempAssestData.size)
-                                {
-                                  apitempAssetData.forEachIndexed { index, templateAsset ->
-                                      if (!templateAsset.assetUrl.equals(savedTempAssestData[index].assetUrl))
-                                      {
-                                          Log.e(TAG, "assset url diff: ${templateAsset.assetUrl} / \n" +
-                                                  "${savedTempAssestData[index].assetUrl}")
-                                          downloadOtherFiles(scheduleDataList, templateAsset)
-                                      }else
-                                      {
-                                          Log.e(TAG, "checkApiFileDiff: same asset url")
-                                      }
-                                  }
+                                if (apitempAssetData.size == savedTempAssestData.size) {
+                                    apitempAssetData.forEachIndexed { index, templateAsset ->
+                                        if (!templateAsset.assetUrl.equals(savedTempAssestData[index].assetUrl)) {
+                                            Log.e(
+                                                TAG,
+                                                "assset url diff: ${templateAsset.assetUrl} / \n" +
+                                                        "${savedTempAssestData[index].assetUrl}"
+                                            )
+                                            downloadOtherFiles(scheduleDataList, templateAsset)
+                                        } else {
+                                            Log.e(TAG, "checkApiFileDiff: same asset url")
+                                        }
+                                    }
 
                                 }
                             }
@@ -435,8 +478,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
                 downloadOtherFiles(scheduleData, assetData)
             }
 
-            if (downloadAllStatus)
-            {
+            if (downloadAllStatus) {
                 downloadAllStatus = false
                 startActivity(Intent(this, MainActivity::class.java))
             }
@@ -445,24 +487,21 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
 
     private fun downlodLogoImage(scheduleData: ScheduleData) {
         //get logo image if present
-        if (scheduleData.deviceTemplateData?.logo != null && scheduleData.deviceTemplateData?.logo!!.isNotEmpty())
-        {
-            assetUrl = Constants.Video_Base_URL+ scheduleData.deviceTemplateData!!.logo
+        if (scheduleData.deviceTemplateData?.logo != null && scheduleData.deviceTemplateData?.logo!!.isNotEmpty()) {
+            assetUrl = Constants.Video_Base_URL + scheduleData.deviceTemplateData!!.logo
             fileName = getFileName(assetUrl!!)
             val logoTag = "logo"
             //logo image syntax - scheduleid_deviceid_logo_templateid_imagename.jpeg
             fileName =
-                    "${scheduleData.id}_${scheduleData.zoneId}_${scheduleData.cityId}_${scheduleData.branchId}_" +
-                            "${scheduleData.deviceGroupId}_${scheduleData.deviceId}_${logoTag}_${scheduleData.deviceTemplateData?.templateId}_$fileName"
+                "${scheduleData.id}_${scheduleData.zoneId}_${scheduleData.cityId}_${scheduleData.branchId}_" +
+                        "${scheduleData.deviceGroupId}_${scheduleData.deviceId}_${logoTag}_${scheduleData.deviceTemplateData?.templateId}_$fileName"
 
             val ifPresent = ExternalFileHandling.isFileExists(fileName!!)
-                //checkIfFileAlreadyPresent(this, getFileNameWithoutExtn(fileName!!))
-            if (ifPresent)
-            {
+            //checkIfFileAlreadyPresent(this, getFileNameWithoutExtn(fileName!!))
+            if (ifPresent) {
                 downloadAllStatus = true
                 Log.d(TAG, "checkCreatedFolder: $fileName not needed to download again")
-            }else
-            {
+            } else {
                 Log.d(TAG, "checkCreatedFolder:$fileName need to download file")
                 ExternalFileHandling.downloadFileFromManager(this, assetUrl!!, fileName!!)
             }
@@ -473,18 +512,16 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
         assetUrl = Constants.Video_Base_URL + assetData.assetUrl
         fileName = getFileName(assetUrl)
         fileName =
-                "${scheduleData.id}_${scheduleData.zoneId}_${scheduleData.cityId}_${scheduleData.branchId}_" +
-                        "${scheduleData.deviceGroupId}_${scheduleData.deviceId}_${assetData.boxNo}_${scheduleData.deviceTemplateData?.templateId}_$fileName"
+            "${scheduleData.id}_${scheduleData.zoneId}_${scheduleData.cityId}_${scheduleData.branchId}_" +
+                    "${scheduleData.deviceGroupId}_${scheduleData.deviceId}_${assetData.boxNo}_${scheduleData.deviceTemplateData?.templateId}_$fileName"
         //It should check before downloading. If file exists, it should return
         // or it should delete and then try to download the new file.
         val ifVideoPresent = ExternalFileHandling.isFileExists(fileName)
-            //checkIfFileAlreadyPresent(this, getFileNameWithoutExtn(fileName))
-        if (ifVideoPresent)
-        {
+        //checkIfFileAlreadyPresent(this, getFileNameWithoutExtn(fileName))
+        if (ifVideoPresent) {
             downloadAllStatus = true
             Log.d(TAG, "checkCreatedFolder: $fileName not needed to download again")
-        }else
-        {
+        } else {
             Log.d(TAG, "checkCreatedFolder:$fileName need to download")
             ExternalFileHandling.downloadFileFromManager(this, assetUrl!!, fileName!!)
         }
@@ -520,8 +557,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
     override fun onStop() {
         super.onStop()
         releasePlayer()
-        if (udpSocketReceiver != null)
-        {
+        if (udpSocketReceiver != null) {
             unregisterReceiver(udpSocketReceiver)
         }
     }
@@ -668,11 +704,71 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
                 initLayoutForTemplateTwentyNineCopy()
             }
             35 -> {
-                initLayoutForTemplateTwentyNineSliderCopy()
+
+                /*---Work By Sheraz---*/
+                initLayoutForTemplateThirtyFive()
+//                initLayoutForTemplateTwentyNineSliderCopy()
             }
         }
 
         setSavedData()
+    }
+
+    private fun initLayoutForTemplateThirtyFive() {
+        Log.d(TAG, "initLayoutForTemplateThirtyFive: called")
+
+
+        imgLogo = inflated?.findViewById<ImageView>(R.id.ivLogo)!!
+        imgBoxOne = inflated?.findViewById<ImageView>(R.id.ivProfile)!!
+        txtName = inflated?.findViewById<TextView>(R.id.tvDrName)!!
+        txtQNo = inflated?.findViewById<TextView>(R.id.tvQnO)!!
+        txtRoomNo = inflated?.findViewById<TextView>(R.id.tvRoomNo)!!
+        txtDescription = inflated?.findViewById<TextView>(R.id.tvDescription)!!
+        txtDrCategory = inflated?.findViewById<TextView>(R.id.tvDrCategory)!!
+
+        /*Dr Name*/
+        if (txtName != null) {
+            txtName!!.text = model.deviceTemplateData?.doctorName
+        }
+        /*----Logo------*/
+        if (imgLogo != null) {
+
+            Glide.with(this).load("${Constants.Video_Base_URL}${model.deviceTemplateData?.logo}")
+                .into(imgLogo!!)
+        }
+        /*Dr Picture*/
+        if (imgBoxOne != null) {
+
+            Glide.with(this)
+                .load("${Constants.Video_Base_URL}${model.deviceTemplateData?.doctorImage}")
+                .into(imgBoxOne!!)
+        }
+        /*Dr Description*/
+        if (txtDescription != null) {
+            txtDescription!!.text = model.deviceTemplateData?.description
+        }
+        /*Room No and Q-No*/
+        if (txtRoomNo != null) {
+//            textRoomNo!!.text = model.deviceTemplateData?.roomNO
+        }
+
+        /*Realtime tracking of Room no and token No*/
+        syncRoomAndTokenCounter(txtRoomNo!!, txtQNo!!)
+
+
+    }
+
+    private fun syncRoomAndTokenCounter(tvRoomNumber: TextView, tvQ_No: TextView) {
+        shouldStopSyncing = false
+
+        _runnable = Runnable {
+            shouldStopSyncing = false
+
+//            mViewModel?.assetDownloadScheduleData(getCurrentdate2("MM-dd-yyyy"))
+
+
+            mHandler.postDelayed(_runnable, 3000)
+        }
     }
 
     private fun initLayoutForTemplateThirtyThree() {
@@ -785,8 +881,8 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
 
         if (templateAssetVideoCount > 0) {
             Log.d(
-                    TAG,
-                    "initLayoutForTemplateThirtyOne: videoUrlOfflineList size ${videoUrlOfflineList.size}"
+                TAG,
+                "initLayoutForTemplateThirtyOne: videoUrlOfflineList size ${videoUrlOfflineList.size}"
             )
             if (videoUrlOfflineList.size > 0) {
                 //content://com.digitalsignage.androidplayer.provider/files/androidplayer/48_2_18_80795_1611578015.mp4
@@ -840,8 +936,8 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
         setTickerText(tickerText)
         if (templateAssetVideoCount > 0) {
             Log.d(
-                    TAG,
-                    "initLayoutForTemplateThirty: videoUrlOfflineList size ${videoUrlOfflineList.size}"
+                TAG,
+                "initLayoutForTemplateThirty: videoUrlOfflineList size ${videoUrlOfflineList.size}"
             )
             if (videoUrlOfflineList.size > 0) {
                 //content://com.digitalsignage.androidplayer.provider/files/androidplayer/48_2_18_80795_1611578015.mp4
@@ -866,12 +962,12 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
                         val templateId = arrayData[7]
                         val originalVideoName = arrayData[8]
 
-                       /* AppLog.d(
-                                TAG, "30 video spec info: scheduleId: $scheduleId \n\t" +
-                                "deviceId: $deviceId \n\t" +
-                                "boxNumber: $boxNumber \n\t" +
-                                "templateId: $templateId \n\t" + "originalFileName: $originalVideoName"
-                        )*/
+                        /* AppLog.d(
+                                 TAG, "30 video spec info: scheduleId: $scheduleId \n\t" +
+                                 "deviceId: $deviceId \n\t" +
+                                 "boxNumber: $boxNumber \n\t" +
+                                 "templateId: $templateId \n\t" + "originalFileName: $originalVideoName"
+                         )*/
                         if (boxNumber.equals("3")) {
                             offlineVideoUrl1 = uriData
                         }
@@ -898,66 +994,6 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
         imgLogo = inflated?.findViewById<ImageView>(R.id.img_logo)!!
         imgBoxOne = inflated?.findViewById<ImageView>(R.id.img_one)!!
         imgBoxTwo = inflated?.findViewById<ImageView>(R.id.img_two)!!
-        videoBoxOne = inflated?.findViewById<PlayerView>(R.id.video_one)!!
-        tickerText = inflated?.findViewById(R.id.txt_ticker)!!
-        llTickerView = inflated?.findViewById<LinearLayout>(R.id.ll_ticker)!!
-        initTokenCounterUI()
-        setAdapter()
-
-        setTickerText(tickerText)
-
-        if (templateAssetVideoCount > 0) {
-            Log.d(
-                    TAG,
-                    "initLayoutForTemplateTwentyNine: videoUrlOfflineList size ${videoUrlOfflineList.size}"
-            )
-            if (videoUrlOfflineList.size > 0) {
-                //content://com.digitalsignage.androidplayer.provider/files/androidplayer/48_2_18_80795_1611578015.mp4
-                if (templateAssetVideoCount == 1) {
-                    videoUrlOfflineList.forEach { uriData ->
-                        Log.d(TAG, "initLayoutForTemplateTwentyNine: video name $uriData")
-                        val fileName: String = getFileNameWithoutExtn(uriData.path!!)
-
-                        val arrayData: List<String> = fileName.split("_", limit = 9)
-
-                        val scheduleId = arrayData[0]
-                        val zoneId = arrayData[1]
-                        val cityId = arrayData[2]
-                        val branchId = arrayData[3]
-                        val devicegrpId = arrayData[4]
-                        val deviceId = arrayData[5]
-                        val boxNumber = arrayData[6]
-                        val templateId = arrayData[7]
-                        val originalVideoName = arrayData[8]
-
-                        if (boxNumber.equals("3")) {
-                            offlineVideoUrl1 = uriData
-                        }
-                    }
-                }
-            }
-        }
-
-        initSingleVideosPlayer()
-
-        if (offlineVideoUrl1 != null && offlineVideoUrl1.toString().isNotEmpty()) {
-            playVideoOne(offlineVideoUrl1!!, videoBoxOne, "dataSourceFactory1", mPlayer1)
-        }
-
-        setTwoImages(29)
-        showCustomizeDialog()
-
-        if (logoImageOfflineUrl != null && logoImageOfflineUrl.toString().isNotEmpty()) {
-            loadImageFromUri(this, logoImageOfflineUrl!!, imgLogo)
-        }
-    }
-//copy
-
-    private fun initLayoutForTemplateTwentyNineCopy() {
-        Log.d(TAG, "initLayoutForTemplateTwentyNineCopy: called")
-        imgLogo = inflated?.findViewById<ImageView>(R.id.img_logo)!!
-        imgBoxOne = inflated?.findViewById<ImageView>(R.id.img_one)!!
-       // imgBoxTwo = inflated?.findViewById<ImageView>(R.id.img_two)!!
         videoBoxOne = inflated?.findViewById<PlayerView>(R.id.video_one)!!
         tickerText = inflated?.findViewById(R.id.txt_ticker)!!
         llTickerView = inflated?.findViewById<LinearLayout>(R.id.ll_ticker)!!
@@ -1011,6 +1047,89 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
             loadImageFromUri(this, logoImageOfflineUrl!!, imgLogo)
         }
     }
+//copy
+
+    private fun initLayoutForTemplateTwentyNineCopy() {
+        Log.d(TAG, "initLayoutForTemplateTwentyNineCopy: called")
+        imgLogo = inflated?.findViewById<ImageView>(R.id.img_logo)!!
+        imgBoxOne = inflated?.findViewById<ImageView>(R.id.img_one)!!
+        // imgBoxTwo = inflated?.findViewById<ImageView>(R.id.img_two)!!
+        videoBoxOne = inflated?.findViewById<PlayerView>(R.id.video_one)!!
+        txtName = inflated?.findViewById<TextView>(R.id.txt_name)!!
+
+//        tickerText = inflated?.findViewById(R.id.txt_name)!!
+//        llTickerView = inflated?.findViewById<LinearLayout>(R.id.ll_ticker)!!
+//        initTokenCounterUI()
+//        setAdapter()
+
+//        setTickerText(tickerText)
+
+
+        if (txtName != null) {
+            txtName!!.text = model.deviceTemplateData?.doctorName
+        }
+
+        /*----Logo------*/
+        if (imgLogo != null) {
+
+            Glide.with(this).load("${Constants.Video_Base_URL}${model.deviceTemplateData?.logo}")
+                .into(imgLogo!!)
+        }
+
+
+        /*----Doctor Picture------*/
+        if (imgBoxOne != null) {
+            Glide.with(this)
+                .load("${Constants.Video_Base_URL}${model.deviceTemplateData?.doctorImage}")
+                .into(imgBoxOne!!)
+        }
+
+        if (templateAssetVideoCount > 0) {
+            Log.d(
+                TAG,
+                "initLayoutForTemplateTwentyNine: videoUrlOfflineList size ${videoUrlOfflineList.size}"
+            )
+            if (videoUrlOfflineList.size > 0) {
+                //content://com.digitalsignage.androidplayer.provider/files/androidplayer/48_2_18_80795_1611578015.mp4
+                if (templateAssetVideoCount == 1) {
+                    videoUrlOfflineList.forEach { uriData ->
+                        Log.d(TAG, "initLayoutForTemplateTwentyNine: video name $uriData")
+                        val fileName: String = getFileNameWithoutExtn(uriData.path!!)
+
+                        val arrayData: List<String> = fileName.split("_", limit = 9)
+
+                        val scheduleId = arrayData[0]
+                        val zoneId = arrayData[1]
+                        val cityId = arrayData[2]
+                        val branchId = arrayData[3]
+                        val devicegrpId = arrayData[4]
+                        val deviceId = arrayData[5]
+                        val boxNumber = arrayData[6]
+                        val templateId = arrayData[7]
+                        val originalVideoName = arrayData[8]
+
+                        if (boxNumber.equals("1")) {
+                            offlineVideoUrl1 = uriData
+                        }
+                    }
+                }
+            }
+        }
+
+        initSingleVideosPlayer()
+
+        if (offlineVideoUrl1 != null && offlineVideoUrl1.toString().isNotEmpty()) {
+            playVideoOne(offlineVideoUrl1!!, videoBoxOne, "dataSourceFactory1", mPlayer1)
+        }
+
+//        setTwoImages(29)
+//        showCustomizeDialog()
+
+//        if (logoImageOfflineUrl != null && logoImageOfflineUrl.toString().isNotEmpty()) {
+//            loadImageFromUri(this, logoImageOfflineUrl!!, imgLogo)
+//        }
+    }
+
     ///end copy
 //slider copy
     private fun initLayoutForTemplateTwentyNineSliderCopy() {
@@ -1368,7 +1487,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
         //assetDownloadScheduleResponse = getTemplateStoredResponse()!!
 
         //val scheduleList =  assetDownloadScheduleResponse.data
-       setAdapter()
+        setAdapter()
 
         if (scheduleList.isNotEmpty()) {
             scheduleList.forEach { scheduleData ->
@@ -1667,6 +1786,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
         imgLogo = inflated?.findViewById<ImageView>(R.id.img_logo)!!
         videoBoxOne = inflated?.findViewById<PlayerView>(R.id.templateVideoPlayer_one)!!
         tickerText = inflated?.findViewById(R.id.txt_ticker)!!
+//        txtName = inflated?.findViewById(R.id.txt_name)!!
         llTickerView = inflated?.findViewById<LinearLayout>(R.id.ll_ticker)!!
 
         setTickerText(tickerText)
@@ -1715,21 +1835,22 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
         showCustomizeDialog()
     }
 
-    private fun showCustomizeDialog()
-    {
+    private fun showCustomizeDialog() {
         llGreenView?.setOnLongClickListener {
 
             //showCustmizeDialog(this, layoutInflater, templateLayoutId, this)
-            showPasswordDialog(this,layoutInflater,this)
+            showPasswordDialog(this, layoutInflater, this)
             return@setOnLongClickListener true
         }
     }
 
-    private fun getDeviceIdTemplateSpecificFiles(savedDeviceId: String, savedZoneId: String,savedCityId: String,savedBranchId: String,
-                                                 savedDeviceGrpId: String,templateLayoutId: Int) {
-         imageUrlOfflineList.clear()
-         videoUrlOfflineList.clear()
-         logoImageOfflineUrl = null
+    private fun getDeviceIdTemplateSpecificFiles(
+        savedDeviceId: String, savedZoneId: String, savedCityId: String, savedBranchId: String,
+        savedDeviceGrpId: String, templateLayoutId: Int
+    ) {
+        imageUrlOfflineList.clear()
+        videoUrlOfflineList.clear()
+        logoImageOfflineUrl = null
 
         getPrefStoredSpecificTemplateDataCount(templateLayoutId)
 
@@ -1739,7 +1860,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
                 val fileName: String = getFileNameWithoutExtn(file.path)
                 //logo image syntax - scheduleid_deviceid_logo_templateid_imagename.jpeg
                 //video name syntax - scheduleid_deviceid_boxno_templateid_videoname.mp4
-    //scheduleid_zoneid_cityid_branchid_devicegrpid_deviceid_logo_templateid_imagename.jpeg
+                //scheduleid_zoneid_cityid_branchid_devicegrpid_deviceid_logo_templateid_imagename.jpeg
                 //44_3_2_14_71435_1610972260.mp4
                 val arrayData: List<String> = fileName.split("_", limit = 9)
 
@@ -1762,9 +1883,9 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
                     try {
 
                         val uri = FileProvider.getUriForFile(
-                                this,
-                                this.applicationContext.packageName + ".provider",
-                                file
+                            this,
+                            this.applicationContext.packageName + ".provider",
+                            file
                         )
                         AppLog.d(TAG, "image uri : $uri")
                         //logo image syntax - scheduleid_deviceid_logo_templateid_imagename.jpeg
@@ -1774,42 +1895,43 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
                                 val templateAssetData = deviceTemplateData.templateAssets
 
                                 if (savedDeviceId.equals(scheduleData.deviceId) &&
-                                        savedZoneId.equals(scheduleData.zoneId) &&
-                                        savedCityId.equals(scheduleData.cityId) &&
-                                        savedBranchId.equals(scheduleData.branchId) &&
-                                        savedDeviceGrpId.equals(scheduleData.deviceGroupId)) {
+                                    savedZoneId.equals(scheduleData.zoneId) &&
+                                    savedCityId.equals(scheduleData.cityId) &&
+                                    savedBranchId.equals(scheduleData.branchId) &&
+                                    savedDeviceGrpId.equals(scheduleData.deviceGroupId)
+                                ) {
                                     savedResScheduleId = scheduleData.id
                                     AppLog.d(TAG, "savedResScheduleId image: $savedResScheduleId")
                                     if (deviceId.equals(savedDeviceId) && boxNumber.equals("logo") &&
-                                            scheduleId.equals(scheduleData.id.toString()) &&
-                                            zoneId.equals(savedZoneId) &&
-                                            cityId.equals(savedCityId) &&
-                                            branchId.equals(savedBranchId) &&
-                                            devicegrpId.equals(savedDeviceGrpId) &&
-                                            templateId.equals(templateLayoutId.toString()) &&
-                                            originalVideoName.equals(
-                                                    getFileNameWithoutExtn(
-                                                            deviceTemplateData.logo!!
-                                                    )
+                                        scheduleId.equals(scheduleData.id.toString()) &&
+                                        zoneId.equals(savedZoneId) &&
+                                        cityId.equals(savedCityId) &&
+                                        branchId.equals(savedBranchId) &&
+                                        devicegrpId.equals(savedDeviceGrpId) &&
+                                        templateId.equals(templateLayoutId.toString()) &&
+                                        originalVideoName.equals(
+                                            getFileNameWithoutExtn(
+                                                deviceTemplateData.logo!!
                                             )
+                                        )
                                     ) {
                                         logoImageOfflineUrl = uri
                                     }
 
                                     templateAssetData?.forEach { tempImgAsset ->
-                                         if (deviceId.equals(savedDeviceId) &&
-                                             boxNumber.equals(tempImgAsset.boxNo) &&
-                                             scheduleId.equals(scheduleData.id.toString()) &&
-                                                 zoneId.equals(savedZoneId) &&
-                                                 cityId.equals(savedCityId) &&
-                                                 branchId.equals(savedBranchId) &&
-                                                 devicegrpId.equals(savedDeviceGrpId) &&
-                                                 templateId.equals(templateLayoutId.toString())
+                                        if (deviceId.equals(savedDeviceId) &&
+                                            boxNumber.equals(tempImgAsset.boxNo) &&
+                                            scheduleId.equals(scheduleData.id.toString()) &&
+                                            zoneId.equals(savedZoneId) &&
+                                            cityId.equals(savedCityId) &&
+                                            branchId.equals(savedBranchId) &&
+                                            devicegrpId.equals(savedDeviceGrpId) &&
+                                            templateId.equals(templateLayoutId.toString())
                                             && originalVideoName.equals(
-                                                        getFileNameWithoutExtn(
-                                                                tempImgAsset.assetUrl!!
-                                                        )
+                                                getFileNameWithoutExtn(
+                                                    tempImgAsset.assetUrl!!
                                                 )
+                                            )
                                         ) {
                                             imageUrlOfflineList.add(uri)
                                         }
@@ -1825,8 +1947,8 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
                     try {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                             uri = FileProvider.getUriForFile(
-                                    this,
-                                    "${this.packageName}.provider", file
+                                this,
+                                "${this.packageName}.provider", file
                             )
                             //content://com.digitalsignage.androidplayer.provider/files/androidplayer/48_1_18_35551_1611578015.mp4
                             AppLog.d(TAG, "uri above M: $uri")
@@ -1837,28 +1959,29 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
                                     val templateAssetData = deviceTemplateData.templateAssets
 
                                     if (savedDeviceId.equals(scheduleData.deviceId) &&
-                                             savedZoneId.equals(scheduleData.zoneId) &&
-                                            savedCityId.equals(scheduleData.cityId) &&
-                                            savedBranchId.equals(scheduleData.branchId) &&
-                                            savedDeviceGrpId.equals(scheduleData.deviceGroupId)) {
+                                        savedZoneId.equals(scheduleData.zoneId) &&
+                                        savedCityId.equals(scheduleData.cityId) &&
+                                        savedBranchId.equals(scheduleData.branchId) &&
+                                        savedDeviceGrpId.equals(scheduleData.deviceGroupId)
+                                    ) {
                                         savedResScheduleId = scheduleData.id
                                         AppLog.d(TAG, "savedResScheduleId : $savedResScheduleId")
 
                                         templateAssetData?.forEach { tempAsset ->
 
                                             if (deviceId.equals(savedDeviceId) &&
-                                                    boxNumber.equals(tempAsset.boxNo) &&
-                                                 scheduleId.equals(scheduleData.id.toString()) &&
-                                                    zoneId.equals(savedZoneId) &&
-                                                    cityId.equals(savedCityId) &&
-                                                    branchId.equals(savedBranchId) &&
-                                                    devicegrpId.equals(savedDeviceGrpId) &&
-                                                 templateId.equals(templateLayoutId.toString()) &&
-                                                    originalVideoName.equals(
-                                                            getFileNameWithoutExtn(
-                                                                    tempAsset.assetUrl!!
-                                                            )
+                                                boxNumber.equals(tempAsset.boxNo) &&
+                                                scheduleId.equals(scheduleData.id.toString()) &&
+                                                zoneId.equals(savedZoneId) &&
+                                                cityId.equals(savedCityId) &&
+                                                branchId.equals(savedBranchId) &&
+                                                devicegrpId.equals(savedDeviceGrpId) &&
+                                                templateId.equals(templateLayoutId.toString()) &&
+                                                originalVideoName.equals(
+                                                    getFileNameWithoutExtn(
+                                                        tempAsset.assetUrl!!
                                                     )
+                                                )
                                             ) {
                                                 videoUrlOfflineList.add(uri)
                                             }
@@ -1867,8 +1990,8 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
                                 }
                             }
                             Log.d(
-                                    TAG,
-                                    "getDeviceIdTemplateSpecificFiles: video size ${videoUrlOfflineList.size}"
+                                TAG,
+                                "getDeviceIdTemplateSpecificFiles: video size ${videoUrlOfflineList.size}"
                             )
                         } else {
                             uri = Uri.fromFile(file)
@@ -1879,10 +2002,11 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
                                     val templateAssetData = deviceTemplateData.templateAssets
 
                                     if (savedDeviceId.equals(scheduleData.deviceId) &&
-                                            savedZoneId.equals(scheduleData.zoneId) &&
-                                            savedCityId.equals(scheduleData.cityId) &&
-                                            savedBranchId.equals(scheduleData.branchId) &&
-                                            savedDeviceGrpId.equals(scheduleData.deviceGroupId)) {
+                                        savedZoneId.equals(scheduleData.zoneId) &&
+                                        savedCityId.equals(scheduleData.cityId) &&
+                                        savedBranchId.equals(scheduleData.branchId) &&
+                                        savedDeviceGrpId.equals(scheduleData.deviceGroupId)
+                                    ) {
                                         savedResScheduleId = scheduleData.id
                                         AppLog.d(TAG, "savedResScheduleId : $savedResScheduleId")
 
@@ -1891,16 +2015,16 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
                                             if (deviceId.equals(savedDeviceId)
                                                 && boxNumber.equals(tempAsset.boxNo)
                                                 && scheduleId.equals(scheduleData.id.toString())
-                                                    &&  zoneId.equals(savedZoneId)
-                                                    &&    cityId.equals(savedCityId)
-                                                    && branchId.equals(savedBranchId)
-                                                    &&  devicegrpId.equals(savedDeviceGrpId)
-                                                    && templateId.equals(templateLayoutId.toString())
+                                                && zoneId.equals(savedZoneId)
+                                                && cityId.equals(savedCityId)
+                                                && branchId.equals(savedBranchId)
+                                                && devicegrpId.equals(savedDeviceGrpId)
+                                                && templateId.equals(templateLayoutId.toString())
                                                 && originalVideoName.equals(
-                                                            getFileNameWithoutExtn(
-                                                                    tempAsset.assetUrl!!
-                                                            )
+                                                    getFileNameWithoutExtn(
+                                                        tempAsset.assetUrl!!
                                                     )
+                                                )
                                             ) {
                                                 videoUrlOfflineList.add(uri)
                                             }
@@ -1909,8 +2033,8 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
                                 }
                             }
                             Log.d(
-                                    TAG,
-                                    "getDeviceIdTemplateSpecificFiles: video size ${videoUrlOfflineList.size}"
+                                TAG,
+                                "getDeviceIdTemplateSpecificFiles: video size ${videoUrlOfflineList.size}"
                             )
                         }
                     } catch (e: Exception) {
@@ -1929,13 +2053,13 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
                 getTemplatesResponse?.data!!.forEach { templateAssetCountData ->
                     if (templateAssetCountData?.id!! == templateID) {
                         templateAssetImageCount =
-                                templateAssetCountData.imagesRequired!!.toInt()
+                            templateAssetCountData.imagesRequired!!.toInt()
                         templateAssetVideoCount =
-                                templateAssetCountData.videosRequired!!.toInt()
+                            templateAssetCountData.videosRequired!!.toInt()
                         templateAssetLogoImageCount =
-                                templateAssetCountData.logoRequired!!.toInt()
+                            templateAssetCountData.logoRequired!!.toInt()
                         templateAssetTickerTextCount =
-                                templateAssetCountData.tickerTextRequired!!.toInt()
+                            templateAssetCountData.tickerTextRequired!!.toInt()
                     }
                 }
             }
@@ -1976,9 +2100,9 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
         try {
             val bandwidthMeter: BandwidthMeter = DefaultBandwidthMeter()
             val trackSelector: TrackSelector = DefaultTrackSelector(
-                    AdaptiveTrackSelection.Factory(
-                            bandwidthMeter
-                    )
+                AdaptiveTrackSelection.Factory(
+                    bandwidthMeter
+                )
             )
             mPlayer1 = ExoPlayerFactory.newSimpleInstance(this, trackSelector)
             mPlayer2 = ExoPlayerFactory.newSimpleInstance(this, trackSelector)
@@ -1993,9 +2117,9 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
         try {
             val bandwidthMeter: BandwidthMeter = DefaultBandwidthMeter()
             val trackSelector: TrackSelector = DefaultTrackSelector(
-                    AdaptiveTrackSelection.Factory(
-                            bandwidthMeter
-                    )
+                AdaptiveTrackSelection.Factory(
+                    bandwidthMeter
+                )
             )
             mPlayer1 = ExoPlayerFactory.newSimpleInstance(this, trackSelector)
             mPlayer2 = ExoPlayerFactory.newSimpleInstance(this, trackSelector)
@@ -2008,9 +2132,9 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
         try {
             val bandwidthMeter: BandwidthMeter = DefaultBandwidthMeter()
             val trackSelector: TrackSelector = DefaultTrackSelector(
-                    AdaptiveTrackSelection.Factory(
-                            bandwidthMeter
-                    )
+                AdaptiveTrackSelection.Factory(
+                    bandwidthMeter
+                )
             )
             mPlayer1 = ExoPlayerFactory.newSimpleInstance(this, trackSelector)
         } catch (e: Exception) {
@@ -2019,26 +2143,26 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
     }
 
     private fun playVideoOne(
-            url: Uri,
-            exoPlayerView: PlayerView?,
-            dataSourceFactoryText: String,
-            exoPlayer: SimpleExoPlayer?
+        url: Uri,
+        exoPlayerView: PlayerView?,
+        dataSourceFactoryText: String,
+        exoPlayer: SimpleExoPlayer?
     ) {
         val videoUri: Uri = url
         //val videoUri: Uri = Uri.parse(url)
         val dataSourceFactory = DefaultDataSourceFactory(
-                this, Util.getUserAgent(
+            this, Util.getUserAgent(
                 this,
                 dataSourceFactoryText
-        )
+            )
         )
         val extractorsFactory: ExtractorsFactory = DefaultExtractorsFactory()
         val mediaSource: MediaSource = ExtractorMediaSource(
-                videoUri,
-                dataSourceFactory,
-                extractorsFactory,
-                null,
-                null
+            videoUri,
+            dataSourceFactory,
+            extractorsFactory,
+            null,
+            null
         )
         /* val videoSource = ExtractorMediaSource.Factory(dataSourceFactory).
          createMediaSource(Uri.fromFile(File(filename)))*/
@@ -2058,26 +2182,26 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
     }
 
     private fun playVideoTwo(
-            url: Uri,
-            exoPlayerView: PlayerView?,
-            dataSourceFactoryText: String,
-            exoPlayer: SimpleExoPlayer?
+        url: Uri,
+        exoPlayerView: PlayerView?,
+        dataSourceFactoryText: String,
+        exoPlayer: SimpleExoPlayer?
     ) {
         //val videoUri: Uri = Uri.parse(url)
         val videoUri: Uri = url
         val dataSourceFactory = DefaultDataSourceFactory(
-                this, Util.getUserAgent(
+            this, Util.getUserAgent(
                 this,
                 dataSourceFactoryText
-        )
+            )
         )
         val extractorsFactory: ExtractorsFactory = DefaultExtractorsFactory()
         val mediaSource: MediaSource = ExtractorMediaSource(
-                videoUri,
-                dataSourceFactory,
-                extractorsFactory,
-                null,
-                null
+            videoUri,
+            dataSourceFactory,
+            extractorsFactory,
+            null,
+            null
         )
         //exoPlayer?.prepare(mediaSource)
         //looping
@@ -2088,26 +2212,26 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
     }
 
     private fun playVideoThree(
-            url: Uri,
-            exoPlayerView: PlayerView?,
-            dataSourceFactoryText: String,
-            exoPlayer: SimpleExoPlayer?
+        url: Uri,
+        exoPlayerView: PlayerView?,
+        dataSourceFactoryText: String,
+        exoPlayer: SimpleExoPlayer?
     ) {
         //val videoUri: Uri = Uri.parse(url)
         val videoUri: Uri = url
         val dataSourceFactory = DefaultDataSourceFactory(
-                this, Util.getUserAgent(
+            this, Util.getUserAgent(
                 this,
                 dataSourceFactoryText
-        )
+            )
         )
         val extractorsFactory: ExtractorsFactory = DefaultExtractorsFactory()
         val mediaSource: MediaSource = ExtractorMediaSource(
-                videoUri,
-                dataSourceFactory,
-                extractorsFactory,
-                null,
-                null
+            videoUri,
+            dataSourceFactory,
+            extractorsFactory,
+            null,
+            null
         )
         //exoPlayer?.prepare(mediaSource)
 //looping
@@ -2119,26 +2243,26 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
     }
 
     private fun playVideoFour(
-            url: Uri,
-            exoPlayerView: PlayerView?,
-            dataSourceFactoryText: String,
-            exoPlayer: SimpleExoPlayer?
+        url: Uri,
+        exoPlayerView: PlayerView?,
+        dataSourceFactoryText: String,
+        exoPlayer: SimpleExoPlayer?
     ) {
         //val videoUri: Uri = Uri.parse(url)
         val videoUri: Uri = url
         val dataSourceFactory = DefaultDataSourceFactory(
-                this, Util.getUserAgent(
+            this, Util.getUserAgent(
                 this,
                 dataSourceFactoryText
-        )
+            )
         )
         val extractorsFactory: ExtractorsFactory = DefaultExtractorsFactory()
         val mediaSource: MediaSource = ExtractorMediaSource(
-                videoUri,
-                dataSourceFactory,
-                extractorsFactory,
-                null,
-                null
+            videoUri,
+            dataSourceFactory,
+            extractorsFactory,
+            null,
+            null
         )
         //exoPlayer?.prepare(mediaSource)
         //looping
@@ -2157,7 +2281,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
                     if (deviceTemplateData?.tickerText != null && deviceTemplateData.tickerText!!.isNotEmpty()) {
                         tickerView?.text = deviceTemplateData.tickerText
 //                        tickerText.isSelected = true
-                        tickerView?.setMovingText(this,deviceTemplateData.tickerText!!)
+                        tickerView?.setMovingText(this, deviceTemplateData.tickerText!!)
                     }
                 }
             }
@@ -2215,21 +2339,21 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
         }
     }
 
-    private fun initFourVideosUI(){
+    private fun initFourVideosUI() {
         videoBoxOne = inflated?.findViewById<PlayerView>(R.id.video_one)!!
         videoBoxTwo = inflated?.findViewById<PlayerView>(R.id.video_two)!!
         videoBoxThree = inflated?.findViewById<PlayerView>(R.id.video_three)!!
         videoBoxFour = inflated?.findViewById<PlayerView>(R.id.video_four)!!
     }
 
-    private fun initFourImgUI(){
+    private fun initFourImgUI() {
         imgBoxOne = inflated?.findViewById<ImageView>(R.id.img_one)!!
         imgBoxTwo = inflated?.findViewById<ImageView>(R.id.img_two)!!
         imgBoxThree = inflated?.findViewById<ImageView>(R.id.img_three)!!
         imgBoxFour = inflated?.findViewById<ImageView>(R.id.img_four)!!
     }
 
-    private fun initTokenCounterUI(){
+    private fun initTokenCounterUI() {
         tokenRecyclerView = inflated?.findViewById<RecyclerView>(R.id.recycler_token_counter)!!
         tokenCounterView = inflated?.findViewById<ConstraintLayout>(R.id.const_bg)!!
         llGreenView = inflated?.findViewById<LinearLayout>(R.id.ll_recycler)!!
@@ -2274,8 +2398,8 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
 
     private fun setTwoVideosData(templateNo: Int) {
         Log.d(
-                TAG,
-                "initLayoutForTemplate $templateNo: videoUrlOfflineList size ${videoUrlOfflineList.size}"
+            TAG,
+            "initLayoutForTemplate $templateNo: videoUrlOfflineList size ${videoUrlOfflineList.size}"
         )
         if (templateAssetVideoCount > 0) {
             if (videoUrlOfflineList.size > 0) {
@@ -2310,8 +2434,8 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
 
     private fun setFourVideos(templateNo: Int) {
         Log.d(
-                TAG,
-                "initLayoutForTemplate $templateNo: videoUrlOfflineList size ${videoUrlOfflineList.size}"
+            TAG,
+            "initLayoutForTemplate $templateNo: videoUrlOfflineList size ${videoUrlOfflineList.size}"
         )
         if (videoUrlOfflineList.size > 0) {
             if (templateAssetVideoCount > 0) {
@@ -2460,332 +2584,508 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
         }
     }
 
-    override fun onFilerValuesSet(templatedId: Int, headerTxtcolorCode: String, headerBgColor: String,
-                                  headerFont: String, headerFontSize: Int, headerTxtAlign: String,
-                                  headerFontStye: String,headerLableType: String,
-                                  queueTxtcolorCode: String, queueBgColor: String,
-                                  queueFont: String, queueFontSize: Int, queueTxtAlign: String,
-                                  queueFontStye: String,
-                                  rowsCount: Int, columnsCount: Int,
-                                  tickerTxtcolor: String, tickerBgColor: String,
-                                  tickerFont: String, tickerFontSize: Int, tickerDirection: String,
-                                  tickerFontStye: String, tickerSpeed: String,
-                                  queueBlinkSpeed: String, queueSoundSpeed: String,sound: String,
-                                  headerReset: Boolean,queueReset:Boolean,
-                                  tickerReset: Boolean,queueLineColor: String,
-                                  rtQueueTxtcolor: String, rtQueueBgColor: String,
-                                  rtQueueFont: String, rtQueueFontSize: Int, rtQueueAlign: String,
-                                  rtQueueFontStyle: String) {
-       when(templatedId){
-           1, 3, 4, 5, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21, 23, 24, 25, 27, 28, 29, 31, 32,
-           2,6,10,14,18,22,26,30-> {
-               //Integer.toHexString(lastSelectedColor).substring(2)
+    override fun onFilerValuesSet(
+        templatedId: Int, headerTxtcolorCode: String, headerBgColor: String,
+        headerFont: String, headerFontSize: Int, headerTxtAlign: String,
+        headerFontStye: String, headerLableType: String,
+        queueTxtcolorCode: String, queueBgColor: String,
+        queueFont: String, queueFontSize: Int, queueTxtAlign: String,
+        queueFontStye: String,
+        rowsCount: Int, columnsCount: Int,
+        tickerTxtcolor: String, tickerBgColor: String,
+        tickerFont: String, tickerFontSize: Int, tickerDirection: String,
+        tickerFontStye: String, tickerSpeed: String,
+        queueBlinkSpeed: String, queueSoundSpeed: String, sound: String,
+        headerReset: Boolean, queueReset: Boolean,
+        tickerReset: Boolean, queueLineColor: String,
+        rtQueueTxtcolor: String, rtQueueBgColor: String,
+        rtQueueFont: String, rtQueueFontSize: Int, rtQueueAlign: String,
+        rtQueueFontStyle: String
+    ) {
+        when (templatedId) {
+            1, 3, 4, 5, 7, 8, 9, 11, 12, 13, 15, 16, 17, 19, 20, 21, 23, 24, 25, 27, 28, 29, 31, 32,
+            2, 6, 10, 14, 18, 22, 26, 30 -> {
+                //Integer.toHexString(lastSelectedColor).substring(2)
 //myView.setBackgroundColor(ContextCompat.getColor(getActivity(), R.color.myCustomGreen));
-               if (tokenRecyclerView != null && tokenCounterView != null &&
-                       txtTicket != null && txtCounter != null)
-               {
-                   if (headerReset) {
-                       FileUtility.resetHeaderArea(this,tokenCounterView!!,txtTicket!!,txtCounter!!)
-                       //txtTicket?.getPaintFlags()?.and(Paint.UNDERLINE_TEXT_FLAG.inv())?.let { txtTicket?.setPaintFlags(it) }
-                   }
-                   if (headerBgColor.isNotEmpty()) {
-                       tokenCounterView?.setBackgroundColor(Color.parseColor("#$headerBgColor"))
-                   }
-                   if (headerTxtcolorCode.isNotEmpty()) {
-                       txtTicket?.setTextColor(Color.parseColor("#$headerTxtcolorCode"))
-                       txtCounter?.setTextColor(Color.parseColor("#$headerTxtcolorCode"))
-                   }
-                   if (headerFontSize != 0) {
-                       FileUtility.setFontSize(txtTicket!!, this, headerFontSize)
-                       FileUtility.setFontSize(txtCounter!!, this, headerFontSize)
-                   }
-                   if (headerFont.isNotEmpty()) {
-                       FileUtility.setTextFont(txtTicket!!, this, headerFont)
-                       FileUtility.setTextFont(txtCounter!!, this, headerFont)
-                   }
-                   if (headerFontStye.isNotEmpty()) {
-                       FileUtility.setStyle(txtTicket!!, this, headerFontStye)
-                       FileUtility.setStyle(txtCounter!!, this, headerFontStye)
-                   } else {
-                       //textView.paintFlags = textView.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
-                   }
+                if (tokenRecyclerView != null && tokenCounterView != null &&
+                    txtTicket != null && txtCounter != null
+                ) {
+                    if (headerReset) {
+                        FileUtility.resetHeaderArea(
+                            this,
+                            tokenCounterView!!,
+                            txtTicket!!,
+                            txtCounter!!
+                        )
+                        //txtTicket?.getPaintFlags()?.and(Paint.UNDERLINE_TEXT_FLAG.inv())?.let { txtTicket?.setPaintFlags(it) }
+                    }
+                    if (headerBgColor.isNotEmpty()) {
+                        tokenCounterView?.setBackgroundColor(Color.parseColor("#$headerBgColor"))
+                    }
+                    if (headerTxtcolorCode.isNotEmpty()) {
+                        txtTicket?.setTextColor(Color.parseColor("#$headerTxtcolorCode"))
+                        txtCounter?.setTextColor(Color.parseColor("#$headerTxtcolorCode"))
+                    }
+                    if (headerFontSize != 0) {
+                        FileUtility.setFontSize(txtTicket!!, this, headerFontSize)
+                        FileUtility.setFontSize(txtCounter!!, this, headerFontSize)
+                    }
+                    if (headerFont.isNotEmpty()) {
+                        FileUtility.setTextFont(txtTicket!!, this, headerFont)
+                        FileUtility.setTextFont(txtCounter!!, this, headerFont)
+                    }
+                    if (headerFontStye.isNotEmpty()) {
+                        FileUtility.setStyle(txtTicket!!, this, headerFontStye)
+                        FileUtility.setStyle(txtCounter!!, this, headerFontStye)
+                    } else {
+                        //textView.paintFlags = textView.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
+                    }
 
-                   if (headerTxtAlign.isNotEmpty()) {
-                       FileUtility.setTextGravity(txtTicket!!, headerTxtAlign)
-                       FileUtility.setTextGravity(txtCounter!!, headerTxtAlign)
-                   }
-                   if (headerLableType.isNotEmpty())
-                   {
-                       FileUtility.setTextType(this,txtTicket!!,txtCounter!!,headerLableType)
-                   }
+                    if (headerTxtAlign.isNotEmpty()) {
+                        FileUtility.setTextGravity(txtTicket!!, headerTxtAlign)
+                        FileUtility.setTextGravity(txtCounter!!, headerTxtAlign)
+                    }
+                    if (headerLableType.isNotEmpty()) {
+                        FileUtility.setTextType(this, txtTicket!!, txtCounter!!, headerLableType)
+                    }
 
-                   if (queueBgColor.isNotEmpty()) {
-                       tokenRecyclerView?.setBackgroundColor(Color.parseColor("#$queueBgColor"))
-                       llGreenView?.setBackgroundColor(Color.parseColor("#$queueBgColor"))
-                   }
-                   selectedSoundName = sound
-                   soundDuration = queueSoundSpeed
-                   selectedSoundName = sound
-                   soundDuration = queueSoundSpeed
-                   blinkDuration = queueBlinkSpeed
-                   adapterTokenCounter.setViewsColors(tickerReset, rowsCount, queueTxtcolorCode, queueFont, queueBgColor,
-                           queueFontSize, queueFontStye, queueTxtAlign, queueBlinkSpeed, queueSoundSpeed,
-                       sound,queueLineColor)
-               }
+                    if (queueBgColor.isNotEmpty()) {
+                        tokenRecyclerView?.setBackgroundColor(Color.parseColor("#$queueBgColor"))
+                        llGreenView?.setBackgroundColor(Color.parseColor("#$queueBgColor"))
+                    }
+                    selectedSoundName = sound
+                    soundDuration = queueSoundSpeed
+                    selectedSoundName = sound
+                    soundDuration = queueSoundSpeed
+                    blinkDuration = queueBlinkSpeed
+                    adapterTokenCounter.setViewsColors(
+                        tickerReset,
+                        rowsCount,
+                        queueTxtcolorCode,
+                        queueFont,
+                        queueBgColor,
+                        queueFontSize,
+                        queueFontStye,
+                        queueTxtAlign,
+                        queueBlinkSpeed,
+                        queueSoundSpeed,
+                        sound,
+                        queueLineColor
+                    )
+                }
 
-               if (mToken !=  null && mCounter != null && rtToken != null && rtCounter != null)
-               {
-                   if (rtQueueTxtcolor.isNotEmpty()) {
-                       mToken?.setTextColor(Color.parseColor("#$rtQueueTxtcolor"))
-                       mCounter?.setTextColor(Color.parseColor("#$rtQueueTxtcolor"))
-                   }
-                   if (rtQueueBgColor.isNotEmpty()){
-                       rtCounter?.setCardBackgroundColor(Color.parseColor("#$rtQueueBgColor"))
-                       rtToken?.setCardBackgroundColor(Color.parseColor("#$rtQueueBgColor"))
-                   }
-                   if (rtQueueFontSize != 0) {
-                       FileUtility.setFontSize(mToken!!, this, rtQueueFontSize)
-                       FileUtility.setFontSize(mCounter!!, this, rtQueueFontSize)
-                   }
-                   if (rtQueueFont.isNotEmpty()) {
-                       FileUtility.setTextFont(mToken!!, this, rtQueueFont)
-                       FileUtility.setTextFont(mCounter!!, this, rtQueueFont)
-                   }
-                   if (rtQueueFontStyle.isNotEmpty()) {
-                       FileUtility.setStyle(mToken!!, this, rtQueueFontStyle)
-                       FileUtility.setStyle(mCounter!!, this, rtQueueFontStyle)
-                   } else {
-                       //textView.paintFlags = textView.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
-                   }
+                if (mToken != null && mCounter != null && rtToken != null && rtCounter != null) {
+                    if (rtQueueTxtcolor.isNotEmpty()) {
+                        mToken?.setTextColor(Color.parseColor("#$rtQueueTxtcolor"))
+                        mCounter?.setTextColor(Color.parseColor("#$rtQueueTxtcolor"))
+                    }
+                    if (rtQueueBgColor.isNotEmpty()) {
+                        rtCounter?.setCardBackgroundColor(Color.parseColor("#$rtQueueBgColor"))
+                        rtToken?.setCardBackgroundColor(Color.parseColor("#$rtQueueBgColor"))
+                    }
+                    if (rtQueueFontSize != 0) {
+                        FileUtility.setFontSize(mToken!!, this, rtQueueFontSize)
+                        FileUtility.setFontSize(mCounter!!, this, rtQueueFontSize)
+                    }
+                    if (rtQueueFont.isNotEmpty()) {
+                        FileUtility.setTextFont(mToken!!, this, rtQueueFont)
+                        FileUtility.setTextFont(mCounter!!, this, rtQueueFont)
+                    }
+                    if (rtQueueFontStyle.isNotEmpty()) {
+                        FileUtility.setStyle(mToken!!, this, rtQueueFontStyle)
+                        FileUtility.setStyle(mCounter!!, this, rtQueueFontStyle)
+                    } else {
+                        //textView.paintFlags = textView.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
+                    }
 
-                   if (rtQueueAlign.isNotEmpty()) {
-                       FileUtility.setTextGravity(mToken!!,rtQueueAlign)
-                       FileUtility.setTextGravity(mCounter!!,rtQueueAlign)
-                   }
-               }
+                    if (rtQueueAlign.isNotEmpty()) {
+                        FileUtility.setTextGravity(mToken!!, rtQueueAlign)
+                        FileUtility.setTextGravity(mCounter!!, rtQueueAlign)
+                    }
+                }
 
-               if (tickerText != null)
-               {
-                   if (!tickerSpeed.isNullOrEmpty())
-                   {
-                       FileUtility.setTickerSpeed(tickerText!!,tickerSpeed)
-                   }
-                   if (tickerReset)
-                   {
-                       //FileUtility.resetTickerArea(this,tickerText!!)
-                   }
+                if (tickerText != null) {
+                    if (!tickerSpeed.isNullOrEmpty()) {
+                        FileUtility.setTickerSpeed(tickerText!!, tickerSpeed)
+                    }
+                    if (tickerReset) {
+                        //FileUtility.resetTickerArea(this,tickerText!!)
+                    }
 
-                  /* if (tickerBgColor.isNotEmpty()) {
-                       tickerText?.setBackgroundColor(Color.parseColor("#$tickerBgColor"))
-                   }*/
-                   if (llTickerView != null)
-                   {
-                       if (tickerBgColor.isNotEmpty()) {
-                           llTickerView?.setBackgroundColor(Color.parseColor("#$tickerBgColor"))
-                       }
-                   }
-                   if (tickerTxtcolor.isNotEmpty()) {
-                      tickerText?.setTextColor(Color.parseColor("#$tickerTxtcolor"))
-                      tickerText?.init(this.windowManager)
-                   }
-                   if (tickerFontSize != 0) {
-                       FileUtility.setFontSize(tickerText!!, this, tickerFontSize)
-                   }
-                   if (tickerFont.isNotEmpty()) {
-                       FileUtility.setTextFont(tickerText!!, this, tickerFont)
-                       tickerText?.init(this.windowManager)
-                   }
-                   if (tickerFontStye.isNotEmpty()) {
-                       FileUtility.setStyle(tickerText!!, this, tickerFontStye)
-                       tickerText?.init(this.windowManager)
-                   }
+                    /* if (tickerBgColor.isNotEmpty()) {
+                         tickerText?.setBackgroundColor(Color.parseColor("#$tickerBgColor"))
+                     }*/
+                    if (llTickerView != null) {
+                        if (tickerBgColor.isNotEmpty()) {
+                            llTickerView?.setBackgroundColor(Color.parseColor("#$tickerBgColor"))
+                        }
+                    }
+                    if (tickerTxtcolor.isNotEmpty()) {
+                        tickerText?.setTextColor(Color.parseColor("#$tickerTxtcolor"))
+                        tickerText?.init(this.windowManager)
+                    }
+                    if (tickerFontSize != 0) {
+                        FileUtility.setFontSize(tickerText!!, this, tickerFontSize)
+                    }
+                    if (tickerFont.isNotEmpty()) {
+                        FileUtility.setTextFont(tickerText!!, this, tickerFont)
+                        tickerText?.init(this.windowManager)
+                    }
+                    if (tickerFontStye.isNotEmpty()) {
+                        FileUtility.setStyle(tickerText!!, this, tickerFontStye)
+                        tickerText?.init(this.windowManager)
+                    }
 
-                   if (tickerDirection.isNotEmpty()) {
-                       FileUtility.setTickerDirection(tickerText!!, tickerDirection)
-                   }
+                    if (tickerDirection.isNotEmpty()) {
+                        FileUtility.setTickerDirection(tickerText!!, tickerDirection)
+                    }
 
-               }
-           }
-       }//when end
+                }
+            }
+        }//when end
     }
 
     override fun onLongClickPerform(position: Int) {
-        showPasswordDialog(this,layoutInflater,this)
+        showPasswordDialog(this, layoutInflater, this)
         //showCustmizeDialog(this, layoutInflater, PreferanceRepository.getInt(Constants.Current_Device_Layout_ID), this)
     }
 
     override fun onDownloadComplete() {
-            val i = Intent(this, MainActivity::class.java)
-            //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            startActivity(i)
+        val i = Intent(this, MainActivity::class.java)
+        //i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(i)
     }
 
-    private fun setSavedData(){
+    private fun setSavedData() {
         val data_save = "SAVED_THEME"
 
-        if (tokenCounterView != null)
-        {
-            if(!PreferanceRepository.getString(data_save+"_Header_bg_txt").isNullOrEmpty()){
-                tokenCounterView?.setBackgroundColor(Color.parseColor("#"+PreferanceRepository.getString(data_save+"_Header_bg_txt")))
+        if (tokenCounterView != null) {
+            if (!PreferanceRepository.getString(data_save + "_Header_bg_txt").isNullOrEmpty()) {
+                tokenCounterView?.setBackgroundColor(
+                    Color.parseColor(
+                        "#" + PreferanceRepository.getString(
+                            data_save + "_Header_bg_txt"
+                        )
+                    )
+                )
             }
         }
 
-        if (txtTicket != null && txtCounter != null)
-        {
-            if(!PreferanceRepository.getString(data_save+"_Header_txt").isNullOrEmpty()){
-                txtTicket?.setTextColor(Color.parseColor("#"+PreferanceRepository.getString(data_save+"_Header_txt")))
-                txtCounter?.setTextColor(Color.parseColor("#"+PreferanceRepository.getString(data_save+"_Header_txt")))
+        if (txtTicket != null && txtCounter != null) {
+            if (!PreferanceRepository.getString(data_save + "_Header_txt").isNullOrEmpty()) {
+                txtTicket?.setTextColor(
+                    Color.parseColor(
+                        "#" + PreferanceRepository.getString(
+                            data_save + "_Header_txt"
+                        )
+                    )
+                )
+                txtCounter?.setTextColor(
+                    Color.parseColor(
+                        "#" + PreferanceRepository.getString(
+                            data_save + "_Header_txt"
+                        )
+                    )
+                )
             }
-            if(PreferanceRepository.getInt(data_save+"_Spinner_header_font_size")!=0){
-                FileUtility.setFontSize(txtTicket!!, this, PreferanceRepository.getInt(data_save+"_Spinner_header_font_size"))
-                FileUtility.setFontSize(txtCounter!!, this, PreferanceRepository.getInt(data_save+"_Spinner_header_font_size"))
+            if (PreferanceRepository.getInt(data_save + "_Spinner_header_font_size") != 0) {
+                FileUtility.setFontSize(
+                    txtTicket!!,
+                    this,
+                    PreferanceRepository.getInt(data_save + "_Spinner_header_font_size")
+                )
+                FileUtility.setFontSize(
+                    txtCounter!!,
+                    this,
+                    PreferanceRepository.getInt(data_save + "_Spinner_header_font_size")
+                )
             }
-            if(!PreferanceRepository.getString(data_save+"_Spinner_header_font_family").isNullOrEmpty()){
-                FileUtility.setTextFont(txtTicket!!, this, PreferanceRepository.getString(data_save+"_Spinner_header_font_family"))
-                FileUtility.setTextFont(txtCounter!!, this, PreferanceRepository.getString(data_save+"_Spinner_header_font_family"))
+            if (!PreferanceRepository.getString(data_save + "_Spinner_header_font_family")
+                    .isNullOrEmpty()
+            ) {
+                FileUtility.setTextFont(
+                    txtTicket!!,
+                    this,
+                    PreferanceRepository.getString(data_save + "_Spinner_header_font_family")
+                )
+                FileUtility.setTextFont(
+                    txtCounter!!,
+                    this,
+                    PreferanceRepository.getString(data_save + "_Spinner_header_font_family")
+                )
             }
-            if(!PreferanceRepository.getString(data_save+"_Spinner_header_font_style").isNullOrEmpty()){
-                FileUtility.setStyle(txtTicket!!, this, PreferanceRepository.getString(data_save+"_Spinner_header_font_style"))
-                FileUtility.setStyle(txtCounter!!, this, PreferanceRepository.getString(data_save+"_Spinner_header_font_style"))
+            if (!PreferanceRepository.getString(data_save + "_Spinner_header_font_style")
+                    .isNullOrEmpty()
+            ) {
+                FileUtility.setStyle(
+                    txtTicket!!,
+                    this,
+                    PreferanceRepository.getString(data_save + "_Spinner_header_font_style")
+                )
+                FileUtility.setStyle(
+                    txtCounter!!,
+                    this,
+                    PreferanceRepository.getString(data_save + "_Spinner_header_font_style")
+                )
             } else {
                 //textView.paintFlags = textView.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
             }
-            if(!PreferanceRepository.getString(data_save+"_Spinner_header_text_align").isNullOrEmpty()){
-                FileUtility.setTextGravity(txtTicket!!, PreferanceRepository.getString(data_save+"_Spinner_header_text_align"))
-                FileUtility.setTextGravity(txtCounter!!, PreferanceRepository.getString(data_save+"_Spinner_header_text_align"))
+            if (!PreferanceRepository.getString(data_save + "_Spinner_header_text_align")
+                    .isNullOrEmpty()
+            ) {
+                FileUtility.setTextGravity(
+                    txtTicket!!,
+                    PreferanceRepository.getString(data_save + "_Spinner_header_text_align")
+                )
+                FileUtility.setTextGravity(
+                    txtCounter!!,
+                    PreferanceRepository.getString(data_save + "_Spinner_header_text_align")
+                )
             }
-            if(!PreferanceRepository.getString(data_save+"_HeaderLable_type").isNullOrEmpty()){
-                FileUtility.setTextType(this,txtTicket!!, txtCounter!!,PreferanceRepository.getString(data_save+"_HeaderLable_type"))
+            if (!PreferanceRepository.getString(data_save + "_HeaderLable_type").isNullOrEmpty()) {
+                FileUtility.setTextType(
+                    this,
+                    txtTicket!!,
+                    txtCounter!!,
+                    PreferanceRepository.getString(data_save + "_HeaderLable_type")
+                )
             }
         }
 
-        if (tickerText != null)
-        {
-            if (llTickerView != null)
-            {
-                if(!PreferanceRepository.getString(data_save+"_Ticker_bg_txt").isNullOrEmpty()){
-                    llTickerView?.setBackgroundColor(Color.parseColor("#"+PreferanceRepository.getString(data_save+"_Ticker_bg_txt")))
+        if (tickerText != null) {
+            if (llTickerView != null) {
+                if (!PreferanceRepository.getString(data_save + "_Ticker_bg_txt").isNullOrEmpty()) {
+                    llTickerView?.setBackgroundColor(
+                        Color.parseColor(
+                            "#" + PreferanceRepository.getString(
+                                data_save + "_Ticker_bg_txt"
+                            )
+                        )
+                    )
                 }
             }
-           /* if(!PreferanceRepository.getString(data_save+"_Ticker_bg_txt").isNullOrEmpty()){
-                tickerText?.setBackgroundColor(Color.parseColor("#"+PreferanceRepository.getString(data_save+"_Ticker_bg_txt")))
-            }*/
-            if(!PreferanceRepository.getString(data_save+"_Ticker_txt").isNullOrEmpty()){
-                tickerText?.setTextColor(Color.parseColor("#"+PreferanceRepository.getString(data_save+"_Ticker_txt")))
+            /* if(!PreferanceRepository.getString(data_save+"_Ticker_bg_txt").isNullOrEmpty()){
+                 tickerText?.setBackgroundColor(Color.parseColor("#"+PreferanceRepository.getString(data_save+"_Ticker_bg_txt")))
+             }*/
+            if (!PreferanceRepository.getString(data_save + "_Ticker_txt").isNullOrEmpty()) {
+                tickerText?.setTextColor(
+                    Color.parseColor(
+                        "#" + PreferanceRepository.getString(
+                            data_save + "_Ticker_txt"
+                        )
+                    )
+                )
             }
-            if(PreferanceRepository.getInt(data_save+"_Spinner_ticker_font_size")!=0){
-                FileUtility.setFontSize(tickerText!!, this, PreferanceRepository.getInt(data_save+"_Spinner_ticker_font_size"))
+            if (PreferanceRepository.getInt(data_save + "_Spinner_ticker_font_size") != 0) {
+                FileUtility.setFontSize(
+                    tickerText!!,
+                    this,
+                    PreferanceRepository.getInt(data_save + "_Spinner_ticker_font_size")
+                )
             }
-            if (!PreferanceRepository.getString(data_save+"_Spinner_ticker_font_family").isNullOrEmpty()) {
-                FileUtility.setTextFont(tickerText!!, this, PreferanceRepository.getString(data_save+"_Spinner_ticker_font_family"))
+            if (!PreferanceRepository.getString(data_save + "_Spinner_ticker_font_family")
+                    .isNullOrEmpty()
+            ) {
+                FileUtility.setTextFont(
+                    tickerText!!,
+                    this,
+                    PreferanceRepository.getString(data_save + "_Spinner_ticker_font_family")
+                )
             }
-            if(!PreferanceRepository.getString(data_save+"_Spinner_ticker_font_style").isNullOrEmpty()){
-                FileUtility.setStyle(tickerText!!, this, PreferanceRepository.getString(data_save+"_Spinner_ticker_font_style"))
+            if (!PreferanceRepository.getString(data_save + "_Spinner_ticker_font_style")
+                    .isNullOrEmpty()
+            ) {
+                FileUtility.setStyle(
+                    tickerText!!,
+                    this,
+                    PreferanceRepository.getString(data_save + "_Spinner_ticker_font_style")
+                )
             }
-            if(!PreferanceRepository.getString(data_save+"_Spinner_ticker_direction").isNullOrEmpty()){
-                FileUtility.setTickerDirection(tickerText!!, PreferanceRepository.getString(data_save+"_Spinner_ticker_direction"))
+            if (!PreferanceRepository.getString(data_save + "_Spinner_ticker_direction")
+                    .isNullOrEmpty()
+            ) {
+                FileUtility.setTickerDirection(
+                    tickerText!!,
+                    PreferanceRepository.getString(data_save + "_Spinner_ticker_direction")
+                )
             }
-            if(!PreferanceRepository.getString(data_save+"_Ticker_speed").isNullOrEmpty()){
-                FileUtility.setTickerSpeed(tickerText!!, PreferanceRepository.getString(data_save+"_Ticker_speed"))
+            if (!PreferanceRepository.getString(data_save + "_Ticker_speed").isNullOrEmpty()) {
+                FileUtility.setTickerSpeed(
+                    tickerText!!,
+                    PreferanceRepository.getString(data_save + "_Ticker_speed")
+                )
             }
         }
 
-        if (mToken != null && mCounter != null)
-        {
-            if(!PreferanceRepository.getString(data_save+"_RtQueue_txtColor").isNullOrEmpty()){
-                mToken?.setTextColor(Color.parseColor("#"+PreferanceRepository.getString(data_save+"_RtQueue_txtColor")))
-                mCounter?.setTextColor(Color.parseColor("#"+PreferanceRepository.getString(data_save+"_RtQueue_txtColor")))
+        if (mToken != null && mCounter != null) {
+            if (!PreferanceRepository.getString(data_save + "_RtQueue_txtColor").isNullOrEmpty()) {
+                mToken?.setTextColor(Color.parseColor("#" + PreferanceRepository.getString(data_save + "_RtQueue_txtColor")))
+                mCounter?.setTextColor(
+                    Color.parseColor(
+                        "#" + PreferanceRepository.getString(
+                            data_save + "_RtQueue_txtColor"
+                        )
+                    )
+                )
             }
-            if(!PreferanceRepository.getString(data_save+"_RtQueue_bgColor").isNullOrEmpty()){
-                rtCounter?.setCardBackgroundColor(Color.parseColor("#"+PreferanceRepository.getString(data_save+"_RtQueue_bgColor")))
-                rtToken?.setCardBackgroundColor(Color.parseColor("#"+PreferanceRepository.getString(data_save+"_RtQueue_bgColor")))
+            if (!PreferanceRepository.getString(data_save + "_RtQueue_bgColor").isNullOrEmpty()) {
+                rtCounter?.setCardBackgroundColor(
+                    Color.parseColor(
+                        "#" + PreferanceRepository.getString(
+                            data_save + "_RtQueue_bgColor"
+                        )
+                    )
+                )
+                rtToken?.setCardBackgroundColor(
+                    Color.parseColor(
+                        "#" + PreferanceRepository.getString(
+                            data_save + "_RtQueue_bgColor"
+                        )
+                    )
+                )
             }
-            if(PreferanceRepository.getInt(data_save+"_RtQueue_fontsize")!=0){
-                FileUtility.setFontSize(mToken!!, this, PreferanceRepository.getInt(data_save+"_RtQueue_fontsize"))
-                FileUtility.setFontSize(mCounter!!, this, PreferanceRepository.getInt(data_save+"_RtQueue_fontsize"))
+            if (PreferanceRepository.getInt(data_save + "_RtQueue_fontsize") != 0) {
+                FileUtility.setFontSize(
+                    mToken!!,
+                    this,
+                    PreferanceRepository.getInt(data_save + "_RtQueue_fontsize")
+                )
+                FileUtility.setFontSize(
+                    mCounter!!,
+                    this,
+                    PreferanceRepository.getInt(data_save + "_RtQueue_fontsize")
+                )
             }
-            if(!PreferanceRepository.getString(data_save+"_rtqueue_font_family").isNullOrEmpty()){
-                FileUtility.setTextFont(mToken!!, this, PreferanceRepository.getString(data_save+"_rtqueue_font_family"))
-                FileUtility.setTextFont(mCounter!!, this, PreferanceRepository.getString(data_save+"_rtqueue_font_family"))
+            if (!PreferanceRepository.getString(data_save + "_rtqueue_font_family")
+                    .isNullOrEmpty()
+            ) {
+                FileUtility.setTextFont(
+                    mToken!!,
+                    this,
+                    PreferanceRepository.getString(data_save + "_rtqueue_font_family")
+                )
+                FileUtility.setTextFont(
+                    mCounter!!,
+                    this,
+                    PreferanceRepository.getString(data_save + "_rtqueue_font_family")
+                )
             }
-            if(!PreferanceRepository.getString(data_save+"_RtQueue_fontStyle").isNullOrEmpty()){
-                FileUtility.setStyle(mToken!!, this, PreferanceRepository.getString(data_save+"_RtQueue_fontStyle"))
-                FileUtility.setStyle(mCounter!!, this, PreferanceRepository.getString(data_save+"_RtQueue_fontStyle"))
+            if (!PreferanceRepository.getString(data_save + "_RtQueue_fontStyle").isNullOrEmpty()) {
+                FileUtility.setStyle(
+                    mToken!!,
+                    this,
+                    PreferanceRepository.getString(data_save + "_RtQueue_fontStyle")
+                )
+                FileUtility.setStyle(
+                    mCounter!!,
+                    this,
+                    PreferanceRepository.getString(data_save + "_RtQueue_fontStyle")
+                )
             } else {
                 //textView.paintFlags = textView.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
             }
-            if(!PreferanceRepository.getString(data_save+"queue_text_align").isNullOrEmpty()){
-                FileUtility.setTextGravity(mToken!!, PreferanceRepository.getString(data_save+"queue_text_align"))
-                FileUtility.setTextGravity(mCounter!!, PreferanceRepository.getString(data_save+"queue_text_align"))
+            if (!PreferanceRepository.getString(data_save + "queue_text_align").isNullOrEmpty()) {
+                FileUtility.setTextGravity(
+                    mToken!!,
+                    PreferanceRepository.getString(data_save + "queue_text_align")
+                )
+                FileUtility.setTextGravity(
+                    mCounter!!,
+                    PreferanceRepository.getString(data_save + "queue_text_align")
+                )
             }
         }
 
-        if (tokenRecyclerView != null && llGreenView != null)
-        {
-            if(!PreferanceRepository.getString(data_save+"_Queue_bg_txt").isNullOrEmpty()){
-                tokenRecyclerView?.setBackgroundColor(Color.parseColor("#"+PreferanceRepository.getString(data_save+"_Queue_bg_txt")))
-                llGreenView?.setBackgroundColor(Color.parseColor("#"+PreferanceRepository.getString(data_save+"_Queue_bg_txt")))
+        if (tokenRecyclerView != null && llGreenView != null) {
+            if (!PreferanceRepository.getString(data_save + "_Queue_bg_txt").isNullOrEmpty()) {
+                tokenRecyclerView?.setBackgroundColor(
+                    Color.parseColor(
+                        "#" + PreferanceRepository.getString(
+                            data_save + "_Queue_bg_txt"
+                        )
+                    )
+                )
+                llGreenView?.setBackgroundColor(
+                    Color.parseColor(
+                        "#" + PreferanceRepository.getString(
+                            data_save + "_Queue_bg_txt"
+                        )
+                    )
+                )
             }
             var rowsCount: Int = 0
-            var queueTxtcolorCode:String = ""
-            var queueFont:String = ""
-            var queueBgColor:String = ""
-            var queueFontSize:Int = 30
-            var queueFontStye:String = ""
-            var queueTxtAlign:String= ""
-            var queueSoundDuration:String= "2"
-            var queueBlinkDuration:String= "5"
+            var queueTxtcolorCode: String = ""
+            var queueFont: String = ""
+            var queueBgColor: String = ""
+            var queueFontSize: Int = 30
+            var queueFontStye: String = ""
+            var queueTxtAlign: String = ""
+            var queueSoundDuration: String = "2"
+            var queueBlinkDuration: String = "5"
             var queueLineColor = ""
 
-            if(PreferanceRepository.getInt(data_save+"_Spinner_no_of_row_txt")!= 0) {
-                rowsCount = PreferanceRepository.getInt(data_save+"_Spinner_no_of_row_txt")
+            if (PreferanceRepository.getInt(data_save + "_Spinner_no_of_row_txt") != 0) {
+                rowsCount = PreferanceRepository.getInt(data_save + "_Spinner_no_of_row_txt")
             }
-            if(!PreferanceRepository.getString(data_save+"_Queue_txt").toString().isNullOrEmpty()) {
-                queueTxtcolorCode = PreferanceRepository.getString(data_save+"_Queue_txt").toString()
+            if (!PreferanceRepository.getString(data_save + "_Queue_txt").toString()
+                    .isNullOrEmpty()
+            ) {
+                queueTxtcolorCode =
+                    PreferanceRepository.getString(data_save + "_Queue_txt").toString()
             }
-            if(!PreferanceRepository.getString(data_save+"_Spinner_queue_font_family").toString().isNullOrEmpty()) {
-                queueFont = PreferanceRepository.getString(data_save+"_Spinner_queue_font_family")
+            if (!PreferanceRepository.getString(data_save + "_Spinner_queue_font_family").toString()
+                    .isNullOrEmpty()
+            ) {
+                queueFont = PreferanceRepository.getString(data_save + "_Spinner_queue_font_family")
             }
-            if(!PreferanceRepository.getString(data_save+"_Queue_bg_txt").isNullOrEmpty()) {
-                queueBgColor = PreferanceRepository.getString(data_save+"_Queue_bg_txt")
+            if (!PreferanceRepository.getString(data_save + "_Queue_bg_txt").isNullOrEmpty()) {
+                queueBgColor = PreferanceRepository.getString(data_save + "_Queue_bg_txt")
             }
-            if(PreferanceRepository.getInt(data_save+"_Spinner_queue_font_size")!= 0) {
-                queueFontSize = PreferanceRepository.getInt(data_save+"_Spinner_queue_font_size")
+            if (PreferanceRepository.getInt(data_save + "_Spinner_queue_font_size") != 0) {
+                queueFontSize = PreferanceRepository.getInt(data_save + "_Spinner_queue_font_size")
             }
-            if(!PreferanceRepository.getString(data_save+"_Spinner_queue_font_style").isNullOrEmpty()) {
-                queueFontStye = PreferanceRepository.getString(data_save+"_Spinner_queue_font_style")
+            if (!PreferanceRepository.getString(data_save + "_Spinner_queue_font_style")
+                    .isNullOrEmpty()
+            ) {
+                queueFontStye =
+                    PreferanceRepository.getString(data_save + "_Spinner_queue_font_style")
             }
-            if(!PreferanceRepository.getString(data_save+"_Spinner_queue_text_align").isNullOrEmpty()) {
-                queueTxtAlign = PreferanceRepository.getString(data_save+"_Spinner_queue_text_align")
-            }
-
-            if(!PreferanceRepository.getString(data_save+"_Queue_blinkspeed").isNullOrEmpty()) {
-                queueBlinkDuration = PreferanceRepository.getString(data_save+"_Queue_blinkspeed")
-                blinkDuration = PreferanceRepository.getString(data_save+"_Queue_blinkspeed")
-            }
-
-            if(!PreferanceRepository.getString(data_save+"_Queue_soundspeed").isNullOrEmpty()) {
-                queueSoundDuration = PreferanceRepository.getString(data_save+"_Queue_soundspeed")
-                soundDuration = PreferanceRepository.getString(data_save+"_Queue_soundspeed")
-            }
-
-            if(!PreferanceRepository.getString(data_save+"_Queue_sound").isNullOrEmpty()) {
-                selectedSoundName = PreferanceRepository.getString(data_save+"_Queue_sound")
+            if (!PreferanceRepository.getString(data_save + "_Spinner_queue_text_align")
+                    .isNullOrEmpty()
+            ) {
+                queueTxtAlign =
+                    PreferanceRepository.getString(data_save + "_Spinner_queue_text_align")
             }
 
-            if(!PreferanceRepository.getString(data_save+"_Queue_Line").isNullOrEmpty()) {
-                queueLineColor = PreferanceRepository.getString(data_save+"_Queue_Line")
+            if (!PreferanceRepository.getString(data_save + "_Queue_blinkspeed").isNullOrEmpty()) {
+                queueBlinkDuration = PreferanceRepository.getString(data_save + "_Queue_blinkspeed")
+                blinkDuration = PreferanceRepository.getString(data_save + "_Queue_blinkspeed")
             }
 
-            adapterTokenCounter.setViewsColors(false,rowsCount, queueTxtcolorCode, queueFont, queueBgColor,
-                    queueFontSize, queueFontStye, queueTxtAlign,queueBlinkDuration,
-                queueSoundDuration,selectedSoundName,queueLineColor)
+            if (!PreferanceRepository.getString(data_save + "_Queue_soundspeed").isNullOrEmpty()) {
+                queueSoundDuration = PreferanceRepository.getString(data_save + "_Queue_soundspeed")
+                soundDuration = PreferanceRepository.getString(data_save + "_Queue_soundspeed")
+            }
+
+            if (!PreferanceRepository.getString(data_save + "_Queue_sound").isNullOrEmpty()) {
+                selectedSoundName = PreferanceRepository.getString(data_save + "_Queue_sound")
+            }
+
+            if (!PreferanceRepository.getString(data_save + "_Queue_Line").isNullOrEmpty()) {
+                queueLineColor = PreferanceRepository.getString(data_save + "_Queue_Line")
+            }
+
+            adapterTokenCounter.setViewsColors(
+                false, rowsCount, queueTxtcolorCode, queueFont, queueBgColor,
+                queueFontSize, queueFontStye, queueTxtAlign, queueBlinkDuration,
+                queueSoundDuration, selectedSoundName, queueLineColor
+            )
         }
 
     }//method end
 
 
-    private fun setDelay(udpMsg: String?){
+    private fun setDelay(udpMsg: String?) {
         udpMsg.let {
             val splitUdp = udpMsg?.split("*")
             val data = splitUdp?.get(1)
@@ -2793,13 +3093,12 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
             val tokenNumber = splitTokenCounter?.get(0)
             val counterNumber = splitTokenCounter?.get(1)
             //tokenCounterList.add(TokenCounter(tokenNumber,counterNumber))
-               /* oldTokenCounterObj?.let {
-                    adapterTokenCounter.setTokenCounter(it)
-                }
-                oldTokenCounterObj = TokenCounter(tokenNumber, counterNumber)*/
+            /* oldTokenCounterObj?.let {
+                 adapterTokenCounter.setTokenCounter(it)
+             }
+             oldTokenCounterObj = TokenCounter(tokenNumber, counterNumber)*/
 
-            if (mToken != null && mCounter != null)
-            {
+            if (mToken != null && mCounter != null) {
                 mToken?.text = tokenNumber
                 mCounter?.text = counterNumber
 
@@ -2812,47 +3111,49 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
                     mCounter?.clearAnimation()
                 }, getSoundTime(blinkDuration).toLong())
 
-                playRingtone(TokenCounter(tokenNumber, counterNumber),soundDuration,selectedSoundName)
-            }else
-            {
-              adapterTokenCounter.setTokenCounter(TokenCounter(tokenNumber,counterNumber),false)
+                playRingtone(
+                    TokenCounter(tokenNumber, counterNumber),
+                    soundDuration,
+                    selectedSoundName
+                )
+            } else {
+                adapterTokenCounter.setTokenCounter(TokenCounter(tokenNumber, counterNumber), false)
             }
             //adapterTokenCounter.setTokenCounter(TokenCounter(tokenNumber,counterNumber))
         }
     }
+
     override fun onUdpReceived(udpMsg: String?) {
         println("udp called")
         udpMsg.let {
-            udpTokenList.add(0,it!!)
+            udpTokenList.add(0, it!!)
 
-            if(PreferanceRepository.getInt("SAVED_THEME"+"_Spinner_no_of_row_txt") != 0) {
-                val rowsCount = PreferanceRepository.getInt("SAVED_THEME"+"_Spinner_no_of_row_txt")
-                if (udpTokenList.size ==  rowsCount + 1)
-                {
-                  udpTokenList.removeLast()
+            if (PreferanceRepository.getInt("SAVED_THEME" + "_Spinner_no_of_row_txt") != 0) {
+                val rowsCount =
+                    PreferanceRepository.getInt("SAVED_THEME" + "_Spinner_no_of_row_txt")
+                if (udpTokenList.size == rowsCount + 1) {
+                    udpTokenList.removeLast()
                 }
             }
         }
 //1,2,3
         //PreferanceRepository.setUdpTokenList(udpTokenList)
-        if (udpTokenList.size > 1)
-        {
-            for (itemIndex in udpTokenList.size - 2 downTo 0 )
-            {
-               Handler(Looper.getMainLooper()).postDelayed({
-                      setDelay(udpTokenList[itemIndex])
-               },soundDuration.toLong())
+        if (udpTokenList.size > 1) {
+            for (itemIndex in udpTokenList.size - 2 downTo 0) {
+                Handler(Looper.getMainLooper()).postDelayed({
+                    setDelay(udpTokenList[itemIndex])
+                }, soundDuration.toLong())
 
             }
-        }else
-        {
-          setDelay(udpMsg)
-          //udpListIndex++
+        } else {
+            setDelay(udpMsg)
+            //udpListIndex++
         }
     }
 
-    private fun setAdapter(){
-        adapterTokenCounter = TokenCounterAdapter(this, this, tokenCounterList, viewModel = mViewModel!!,this)
+    private fun setAdapter() {
+        adapterTokenCounter =
+            TokenCounterAdapter(this, this, tokenCounterList, viewModel = mViewModel!!, this)
         /*tokenRecyclerView?.addItemDecoration(
                 DividerItemDecoration(
                         this,
@@ -2872,11 +3173,11 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
         }*/
     }
 
-    private fun playRingtone(tokenCounter: TokenCounter, soundSpeed: String,soundName: String){
+    private fun playRingtone(tokenCounter: TokenCounter, soundSpeed: String, soundName: String) {
         CoroutineScope(Dispatchers.IO).launch {
             Log.d("pppp", "playRingtone: $selectedSoundName ${getSound(soundName)} ")
             val ringtonePlayer = RingtonePlayer(this@MainActivity, getSound(soundName))
-            ringtonePlayer.play(true,soundSpeed.toInt())
+            ringtonePlayer.play(true, soundSpeed.toInt())
             //delay(getSoundTime(soundSpeed).toLong())
             if (ringtonePlayer.mediaPlayerObj != null) {
                 try {
@@ -2889,8 +3190,8 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(),CustDial
         }
     }
 
-    override fun onRepeatToken(tokenCounter: TokenCounter,soundSpeed: String,soundName: String) {
-        playRingtone(tokenCounter,soundSpeed,soundName)
+    override fun onRepeatToken(tokenCounter: TokenCounter, soundSpeed: String, soundName: String) {
+        playRingtone(tokenCounter, soundSpeed, soundName)
     }
 
     override fun showSettingsDialog() {

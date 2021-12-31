@@ -89,7 +89,7 @@ fun getLayout(layoutId: Int): Int {
         32 -> return R.layout.template_thirty_two
         33 -> return R.layout.template_thirty_three
         34 -> return R.layout.template_twenty_ninecopy
-        35 -> return R.layout.template_twenty_ninesildercopy
+        35 -> return R.layout.temple_thirty_five
 
         else -> return 0
     }

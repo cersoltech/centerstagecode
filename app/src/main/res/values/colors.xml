@@ -8,6 +8,7 @@
     <color name="teal_70">#C64C605F</color>
     <color name="black_b">#FF000000</color>
     <color name="black">#000</color>
+    <color name="grey">#D9D9DB</color>
     <color name="text_black">#565555</color>
     <color name="text_color">#585858</color>
     <color name="text_color_two">#393939</color>
@@ -28,5 +29,7 @@
 <!--    new changing-->
 
     <color name="dark_bule">#014E8C</color>
+    <color name="sky_color">#9AD9EA</color>
+    <color name="blue_color">#012060</color>
 
 </resources>
