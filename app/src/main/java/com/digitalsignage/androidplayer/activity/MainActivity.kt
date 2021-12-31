@@ -279,105 +279,111 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(), CustDia
             assetDownloadScheduleResponse = getTemplateAssetStoredResponse()!!
         }
 
-        scheduleList = assetDownloadScheduleResponse.data as ArrayList<ScheduleData>
-
-        //scheduleList.forEach { scheduleData ->
-        for (scheduleData in scheduleList) {
-            val deviceTemplateData = scheduleData.deviceTemplateData
-            if (savedDeviceId == scheduleData.deviceId && savedZoneId == scheduleData.zoneId &&
-                savedCityId == scheduleData.cityId && savedBranchId == scheduleData.branchId &&
-                savedDeviceGrpId == scheduleData.deviceGroupId
-            ) {
-
-
-                /*-------Work By Sheraz--------*/
-                //This Model Saves Response of template
-                model = scheduleData;
-
-
-
-                startTime = scheduleData.startTime
-                endTime = scheduleData.endTime
-
-                val timeBetween = checkCurrentTime(startTime!!, endTime!!)
-                Log.d(TAG, "onCreate: checkCurrentTime $timeBetween")
-
-                if (checkIfStartTimeAfterCurrentTime(startTime!!)) {
-                    break
-                }
-                templateLayoutId = deviceTemplateData?.templateId?.toInt() ?: 0
-                PreferanceRepository.setInt(Constants.Current_Device_Layout_ID, templateLayoutId)
-
-                AppLog.d(TAG, "template id: $templateLayoutId")
-                if (videoFiles.isEmpty()) {
-                    AppLog.d(TAG, "videofiles empty")
-                } else {
-                    AppLog.d(TAG, "videofiles not empty: ${videoFiles.size}")
-                    getDeviceIdTemplateSpecificFiles(
-                        savedDeviceId,
-                        savedZoneId,
-                        savedCityId,
-                        savedBranchId,
-                        savedDeviceGrpId,
-                        templateLayoutId
-                    )
-                }
-                if (timeBetween) {
-                    break
-                }
-            }
-        }
-
-        if (getLayout(templateLayoutId) != 0) {
-            mBinding?.layoutStub?.viewStub?.layoutResource = getLayout(templateLayoutId)
-        } else {
-            Toast.makeText(this, "Error", Toast.LENGTH_LONG).show()
-        }
-        inflated = mBinding?.layoutStub?.viewStub?.inflate()
-        setLayoutViews(templateLayoutId)
-
-        mViewModel?.assetDownloadScheduleData?.observe(this, { dataList ->
-            Log.d(TAG, "onCreate: observe")
-            dataList.data?.forEach { scheduleDataList ->
-
-                if (PreferanceRepository.getString(Constants.DEVICE_ID)
-                        .equals(scheduleDataList.deviceId)
+        if(assetDownloadScheduleResponse.data != null){
+            scheduleList = assetDownloadScheduleResponse.data as ArrayList<ScheduleData>
+            //scheduleList.forEach { scheduleData ->
+            for (scheduleData in scheduleList) {
+                val deviceTemplateData = scheduleData.deviceTemplateData
+                if (savedDeviceId == scheduleData.deviceId && savedZoneId == scheduleData.zoneId &&
+                    savedCityId == scheduleData.cityId && savedBranchId == scheduleData.branchId &&
+                    savedDeviceGrpId == scheduleData.deviceGroupId
                 ) {
-                    startTime = scheduleDataList.startTime
-                    endTime = scheduleDataList.endTime
-                    if (checkCurrentTime(startTime!!, endTime!!)) {
 
-                        scheduleDataList.deviceTemplateData?.let { deviceTempData ->
-                            //PreferanceRepository.setInt(Constants.DEVICE_Layout_ID, it.templateId?.toInt()?: -1)
-                            //this is for same device template or asset change
-                            if (PreferanceRepository.getInt(Constants.Current_Device_Layout_ID) != deviceTempData.templateId?.toInt()) {
-                                PreferanceRepository.setInt(
-                                    Constants.Current_Device_Layout_ID,
-                                    deviceTempData.templateId?.toInt()
-                                        ?: 0
-                                )
-                                //download new files of template
-                                downloadAllDataFromApi(scheduleDataList)
-                                //saved in sharedpref
-                                saveTemplateAssetOfflineData(dataList)
-                            }
-                            if (PreferanceRepository.getInt(Constants.Current_Device_Layout_ID) == deviceTempData.templateId?.toInt()) {
-                                //files diff chk
-                                checkApiFileDiff(scheduleDataList)
-                            }
-                        }
+
+                    /*-------Work By Sheraz--------*/
+                    //This Model Saves Response of template
+                    model = scheduleData;
+
+
+
+                    startTime = scheduleData.startTime
+                    endTime = scheduleData.endTime
+
+                    val timeBetween = checkCurrentTime(startTime!!, endTime!!)
+                    Log.d(TAG, "onCreate: checkCurrentTime $timeBetween")
+
+                    if (checkIfStartTimeAfterCurrentTime(startTime!!)) {
+                        break
+                    }
+                    templateLayoutId = deviceTemplateData?.templateId?.toInt() ?: 0
+                    PreferanceRepository.setInt(Constants.Current_Device_Layout_ID, templateLayoutId)
+
+                    AppLog.d(TAG, "template id: $templateLayoutId")
+                    if (videoFiles.isEmpty()) {
+                        AppLog.d(TAG, "videofiles empty")
                     } else {
-                        //check if there is next schedule for same device after current time &
-                        //update UI at that time with downloading assets
-                        //startActivity(Intent(this,MainActivity::class.java))
+                        AppLog.d(TAG, "videofiles not empty: ${videoFiles.size}")
+                        getDeviceIdTemplateSpecificFiles(
+                            savedDeviceId,
+                            savedZoneId,
+                            savedCityId,
+                            savedBranchId,
+                            savedDeviceGrpId,
+                            templateLayoutId
+                        )
+                    }
+                    if (timeBetween) {
+                        break
                     }
                 }
             }
-        })
-    }
+
+            if (getLayout(templateLayoutId) != 0) {
+                mBinding?.layoutStub?.viewStub?.layoutResource = getLayout(templateLayoutId)
+            } else {
+                Toast.makeText(this, "Error", Toast.LENGTH_LONG).show()
+            }
+            inflated = mBinding?.layoutStub?.viewStub?.inflate()
+            setLayoutViews(templateLayoutId)
+
+            mViewModel?.assetDownloadScheduleData?.observe(this, { dataList ->
+                Log.d(TAG, "onCreate: observe")
+                dataList.data?.forEach { scheduleDataList ->
+
+                    if (PreferanceRepository.getString(Constants.DEVICE_ID)
+                            .equals(scheduleDataList.deviceId)
+                    ) {
+                        startTime = scheduleDataList.startTime
+                        endTime = scheduleDataList.endTime
+                        if (checkCurrentTime(startTime!!, endTime!!)) {
+
+                            scheduleDataList.deviceTemplateData?.let { deviceTempData ->
+                                //PreferanceRepository.setInt(Constants.DEVICE_Layout_ID, it.templateId?.toInt()?: -1)
+                                //this is for same device template or asset change
+                                if (PreferanceRepository.getInt(Constants.Current_Device_Layout_ID) != deviceTempData.templateId?.toInt()) {
+                                    PreferanceRepository.setInt(
+                                        Constants.Current_Device_Layout_ID,
+                                        deviceTempData.templateId?.toInt()
+                                            ?: 0
+                                    )
+                                    //download new files of template
+                                    downloadAllDataFromApi(scheduleDataList)
+                                    //saved in sharedpref
+                                    saveTemplateAssetOfflineData(dataList)
+                                }
+                                if (PreferanceRepository.getInt(Constants.Current_Device_Layout_ID) == deviceTempData.templateId?.toInt()) {
+                                    //files diff chk
+                                    checkApiFileDiff(scheduleDataList)
+                                }
+                            }
+                        } else {
+                            //check if there is next schedule for same device after current time &
+                            //update UI at that time with downloading assets
+                            //startActivity(Intent(this,MainActivity::class.java))
+                        }
+                    }
+                }
+            })
+
+        }else{
+            onBackPressed()
+            finish()
+        }
+
+     }
 
     private fun checkApiFileDiff(scheduleDataList: ScheduleData) {
-        scheduleDataList?.let { fileDiffData ->
+        scheduleDataList.let { fileDiffData ->
 
             //get shared pref stored response
             assetDownloadScheduleResponse = getTemplateAssetStoredResponse()!!
@@ -701,7 +707,10 @@ class MainActivity : BaseActivity<ActivityMainBinding, HomeViewModel>(), CustDia
                 initLayoutForTemplateThirtyThree()
             }
             34 -> {
-                initLayoutForTemplateTwentyNineCopy()
+//                try{
+//
+//                    initLayoutForTemplateTwentyNineCopy()
+//                }catch (Exception)
             }
             35 -> {
 

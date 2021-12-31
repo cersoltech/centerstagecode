@@ -10,11 +10,13 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:adjustViewBounds="true"
+        android:background="@drawable/stroke_blue"
         android:src="@drawable/center_stage_logo"
         app:layout_constraintBottom_toTopOf="@+id/logo_guideline"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
 
     <LinearLayout
         android:id="@+id/ll_ticker"
@@ -83,6 +85,7 @@
         android:id="@+id/img_one"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:background="@drawable/stroke_blue"
         android:focusable="true"
         android:src="@drawable/center_stage_logo"
         app:layout_constraintBottom_toTopOf="@+id/video_guideline"
@@ -97,6 +100,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_margin="20px"
+        android:background="@drawable/stroke_blue"
         android:focusable="true"
         android:padding="@dimen/text_size25"
         android:text="name"
@@ -112,13 +116,21 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:adjustViewBounds="true"
-        android:background="@color/white"
+        android:background="@drawable/stroke_blue"
         app:layout_constraintBottom_toTopOf="@+id/ticker_guideline"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/video_guideline"
         app:layout_constraintVertical_bias="0.0" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/video_one" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/logo_guideline"
